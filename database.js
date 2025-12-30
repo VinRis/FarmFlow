@@ -1,4 +1,4 @@
-// database.js
+// database.js - Simplified version
 class FarmFlowDatabase {
     constructor() {
         this.db = null;
@@ -10,11 +10,10 @@ class FarmFlowDatabase {
         
         this.db.version(1).stores({
             transactions: '++id, date, type, enterprise, category, amount, currency, synced, createdAt',
-            enterprises: '++id, name, type, color, icon, createdAt',
+            enterprises: '++id, name, type, color, description, createdAt',
             budgets: '++id, enterprise, month, year, amount, spent, createdAt',
             loans: '++id, provider, amount, interest, term, startDate, status, createdAt',
-            assets: '++id, name, type, value, purchaseDate, depreciation, createdAt',
-            syncQueue: '++id, action, table, data, timestamp, status'
+            assets: '++id, name, type, value, purchaseDate, depreciation, createdAt'
         });
         
         await this.db.open();
@@ -23,7 +22,6 @@ class FarmFlowDatabase {
     
     // Transaction methods
     async addTransaction(transaction) {
-        transaction.createdAt = new Date().toISOString();
         return await this.db.transactions.add(transaction);
     }
     
@@ -61,34 +59,17 @@ class FarmFlowDatabase {
         return await this.db.transactions.delete(id);
     }
     
-    async getMonthlySummary(year, month) {
-        const transactions = await this.db.transactions
-            .filter(t => {
-                const date = new Date(t.date);
-                return date.getFullYear() === year && 
-                       date.getMonth() === month;
-            })
-            .toArray();
-        
-        const income = transactions
-            .filter(t => t.type === 'income')
-            .reduce((sum, t) => sum + t.amount, 0);
-        
-        const expense = transactions
-            .filter(t => t.type === 'expense')
-            .reduce((sum, t) => sum + t.amount, 0);
-        
-        return {
-            income,
-            expense,
-            net: income - expense,
-            transactionCount: transactions.length
-        };
+    async searchTransactions(query) {
+        const allTransactions = await this.db.transactions.toArray();
+        return allTransactions.filter(t => 
+            t.category.toLowerCase().includes(query.toLowerCase()) ||
+            t.enterprise.toLowerCase().includes(query.toLowerCase()) ||
+            (t.note && t.note.toLowerCase().includes(query.toLowerCase()))
+        );
     }
     
     // Enterprise methods
     async addEnterprise(enterprise) {
-        enterprise.createdAt = new Date().toISOString();
         return await this.db.enterprises.add(enterprise);
     }
     
@@ -96,46 +77,8 @@ class FarmFlowDatabase {
         return await this.db.enterprises.toArray();
     }
     
-    // Budget methods
-    async setBudget(enterprise, month, year, amount) {
-        const existing = await this.db.budgets
-            .where({ enterprise, month, year })
-            .first();
-        
-        if (existing) {
-            return await this.db.budgets.update(existing.id, { amount });
-        } else {
-            return await this.db.budgets.add({
-                enterprise,
-                month,
-                year,
-                amount,
-                spent: 0,
-                createdAt: new Date().toISOString()
-            });
-        }
-    }
-    
-    // Sync queue methods
-    async addToSyncQueue(action, table, data) {
-        return await this.db.syncQueue.add({
-            action,
-            table,
-            data,
-            timestamp: new Date().toISOString(),
-            status: 'pending'
-        });
-    }
-    
-    async getPendingSyncItems() {
-        return await this.db.syncQueue
-            .where('status')
-            .equals('pending')
-            .toArray();
-    }
-    
-    async markSyncComplete(id) {
-        return await this.db.syncQueue.update(id, { status: 'complete' });
+    async getEnterprise(id) {
+        return await this.db.enterprises.get(id);
     }
     
     // Export/Import methods
@@ -156,12 +99,14 @@ class FarmFlowDatabase {
     async importData(jsonData) {
         const data = JSON.parse(jsonData);
         
+        // Clear existing data
         await this.db.transactions.clear();
         await this.db.enterprises.clear();
         await this.db.budgets.clear();
         await this.db.loans.clear();
         await this.db.assets.clear();
         
+        // Import new data
         if (data.transactions) {
             await this.db.transactions.bulkAdd(data.transactions);
         }
@@ -184,31 +129,9 @@ class FarmFlowDatabase {
         
         return true;
     }
-    
-    // Backup methods
-    async createBackup() {
-        const data = await this.exportData();
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        
-        return {
-            url,
-            date: new Date().toISOString(),
-            size: blob.size
-        };
-    }
-    
-    // Search methods
-    async searchTransactions(query) {
-        return await this.db.transactions
-            .filter(t => {
-                return t.category.toLowerCase().includes(query.toLowerCase()) ||
-                       t.enterprise.toLowerCase().includes(query.toLowerCase()) ||
-                       (t.note && t.note.toLowerCase().includes(query.toLowerCase()));
-            })
-            .toArray();
-    }
 }
 
-// Initialize database
-const database = new FarmFlowDatabase();
+// Initialize database when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.database = new FarmFlowDatabase();
+});
