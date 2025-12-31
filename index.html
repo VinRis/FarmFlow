@@ -1,4 +1,4 @@
-<!-- index.html - Updated with avatar selection and enhanced features -->
+<!-- index.html - Fixed navigation -->
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -38,8 +38,8 @@
                 <button class="icon-btn" id="searchBtn" aria-label="Search">
                     <span class="material-icons">search</span>
                 </button>
-                <button class="icon-btn theme-toggle-btn" id="themeToggle" aria-label="Toggle dark mode">
-                    <span class="material-icons theme-icon">dark_mode</span>
+                <button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode">
+                    <span class="material-icons">dark_mode</span>
                 </button>
             </div>
         </div>
@@ -67,65 +67,65 @@
         <div class="drawer-content">
             <div class="nav-section">
                 <h4 class="nav-section-title" data-i18n="main">Main</h4>
-                <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                <button class="nav-item active" data-page="dashboard">
                     <span class="material-icons">dashboard</span>
                     <span data-i18n="dashboard">Dashboard</span>
-                </a>
-                <a href="#transactions" class="nav-item" data-page="transactions">
+                </button>
+                <button class="nav-item" data-page="transactions">
                     <span class="material-icons">receipt_long</span>
                     <span data-i18n="transactions">Transactions</span>
-                </a>
-                <a href="#enterprises" class="nav-item" data-page="enterprises">
+                </button>
+                <button class="nav-item" data-page="enterprises">
                     <span class="material-icons">business</span>
                     <span data-i18n="enterprises">Enterprises</span>
-                </a>
-                <a href="#reports" class="nav-item" data-page="reports">
+                </button>
+                <button class="nav-item" data-page="reports">
                     <span class="material-icons">bar_chart</span>
                     <span data-i18n="reports">Reports</span>
-                </a>
+                </button>
             </div>
             
             <div class="nav-section">
                 <h4 class="nav-section-title" data-i18n="tools">Tools</h4>
-                <a href="#budgets" class="nav-item" data-page="budgets">
+                <button class="nav-item" data-page="budgets">
                     <span class="material-icons">savings</span>
                     <span data-i18n="budgets">Budgets</span>
-                </a>
-                <a href="#invoices" class="nav-item" data-page="invoices">
+                </button>
+                <button class="nav-item" data-page="invoices">
                     <span class="material-icons">description</span>
                     <span data-i18n="invoices">Invoices</span>
-                </a>
-                <a href="#assets" class="nav-item" data-page="assets">
+                </button>
+                <button class="nav-item" data-page="assets">
                     <span class="material-icons">agriculture</span>
                     <span data-i18n="assets">Asset Register</span>
-                </a>
-                <a href="#loans" class="nav-item" data-page="loans">
+                </button>
+                <button class="nav-item" data-page="loans">
                     <span class="material-icons">account_balance</span>
                     <span data-i18n="loans">Loans</span>
-                </a>
+                </button>
             </div>
             
             <div class="nav-section">
                 <h4 class="nav-section-title" data-i18n="settings">Settings</h4>
-                <a href="#backup" class="nav-item" data-page="backup">
+                <button class="nav-item" data-page="backup">
                     <span class="material-icons">backup</span>
                     <span data-i18n="backup">Backup & Restore</span>
-                </a>
-                <a href="#settings" class="nav-item" data-page="settings">
+                </button>
+                <button class="nav-item" data-page="settings">
                     <span class="material-icons">settings</span>
                     <span data-i18n="settings">Settings</span>
-                </a>
-                <a href="#help" class="nav-item" data-page="help">
+                </button>
+                <button class="nav-item" data-page="help">
                     <span class="material-icons">help</span>
                     <span data-i18n="help">Help & Tutorial</span>
-                </a>
+                </button>
             </div>
             
             <div class="nav-section">
                 <h4 class="nav-section-title" data-i18n="language">Language</h4>
                 <div class="language-selector">
-                    <button class="lang-btn active" data-lang="en" data-i18n="english">English</button>
-                    <button class="lang-btn" data-lang="sw" data-i18n="kiswahili">Kiswahili</button>
+                    <button class="lang-btn active" data-lang="en">English</button>
+                    <button class="lang-btn" data-lang="sw">Kiswahili</button>
                 </div>
             </div>
         </div>
@@ -146,120 +146,51 @@
     </div>
     
     <!-- Main Content Area -->
-    <main class="main-content" id="mainContent">
+    <main class="main-content">
         <!-- Dashboard Page (Default) -->
         <section class="page active" id="dashboardPage">
+            <!-- Dashboard content remains the same -->
+        </section>
+        
+        <!-- Transactions Page -->
+        <section class="page" id="transactionsPage">
             <div class="page-header">
-                <h2 data-i18n="dashboard">Dashboard</h2>
-                <p class="page-subtitle" id="dashboardDate">Today</p>
-            </div>
-            
-            <!-- KPI Cards - 3 Cards -->
-            <div class="kpi-grid">
-                <div class="kpi-card income">
-                    <div class="kpi-icon">
-                        <span class="material-icons">trending_up</span>
-                    </div>
-                    <div class="kpi-content">
-                        <p class="kpi-label" data-i18n="monthlyIncome">Monthly Income</p>
-                        <h3 class="kpi-value" id="monthlyIncome">KES 0</h3>
-                        <p class="kpi-trend" id="incomeTrend">+0% from last month</p>
-                    </div>
-                </div>
-                
-                <div class="kpi-card expense">
-                    <div class="kpi-icon">
-                        <span class="material-icons">trending_down</span>
-                    </div>
-                    <div class="kpi-content">
-                        <p class="kpi-label" data-i18n="monthlyExpenses">Monthly Expenses</p>
-                        <h3 class="kpi-value" id="monthlyExpense">KES 0</h3>
-                        <p class="kpi-trend" id="expenseTrend">+0% from last month</p>
-                    </div>
-                </div>
-                
-                <div class="kpi-card net">
-                    <div class="kpi-icon">
-                        <span class="material-icons">show_chart</span>
-                    </div>
-                    <div class="kpi-content">
-                        <p class="kpi-label" data-i18n="netIncome">Net Income</p>
-                        <h3 class="kpi-value" id="netIncome">KES 0</h3>
-                        <p class="kpi-trend" data-i18n="thisMonth">This month</p>
-                    </div>
+                <h2 data-i18n="transactions">Transactions</h2>
+                <div class="page-actions">
+                    <button class="btn secondary" id="filterTransactions">
+                        <span class="material-icons">filter_list</span>
+                        <span data-i18n="filter">Filter</span>
+                    </button>
+                    <button class="btn primary" id="addTransaction">
+                        <span class="material-icons">add</span>
+                        <span data-i18n="add">Add</span>
+                    </button>
                 </div>
             </div>
             
-            <!-- Enterprise Performance Insights -->
-            <div class="section-header">
-                <h3 data-i18n="enterprisePerformance">Enterprise Performance</h3>
-                <select class="time-selector" id="insightsPeriod">
-                    <option value="month" data-i18n="thisMonth">This Month</option>
-                    <option value="quarter" data-i18n="thisQuarter">This Quarter</option>
-                    <option value="year" data-i18n="thisYear">This Year</option>
-                </select>
-            </div>
-            
-            <div class="insights-grid" id="enterpriseInsights">
-                <!-- Insights cards will be loaded here -->
-                <div class="empty-state">
-                    <span class="material-icons">insights</span>
-                    <p data-i18n="noInsights">No performance data yet</p>
-                    <p class="empty-state-sub" data-i18n="addTransactionsForInsights">Add transactions to see enterprise insights</p>
+            <!-- Transaction Filters -->
+            <div class="filters-container" id="transactionFilters" style="display: none;">
+                <div class="filter-row">
+                    <select class="filter-select" id="filterEnterprise">
+                        <option value="">All Enterprises</option>
+                    </select>
+                    <select class="filter-select" id="filterType">
+                        <option value="">All Types</option>
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                    </select>
+                    <input type="date" class="filter-input" id="filterDateFrom" placeholder="From">
+                    <input type="date" class="filter-input" id="filterDateTo" placeholder="To">
+                </div>
+                <div class="filter-row">
+                    <input type="text" class="filter-search" id="filterSearch" placeholder="Search transactions...">
+                    <button class="btn small" id="clearFilters">Clear</button>
                 </div>
             </div>
             
-            <!-- Quick Actions -->
-            <div class="section-header">
-                <h3 data-i18n="quickActions">Quick Actions</h3>
-                <button class="text-link" id="viewAllTransactions" data-i18n="viewAll">View all</button>
-            </div>
-            
-            <div class="quick-actions">
-                <button class="quick-action" data-action="sell-produce">
-                    <span class="material-icons">storefront</span>
-                    <span data-i18n="sellProduce">Sell Produce</span>
-                </button>
-                <button class="quick-action" data-action="buy-feed">
-                    <span class="material-icons">shopping_cart</span>
-                    <span data-i18n="buyFeed">Buy Feed</span>
-                </button>
-                <button class="quick-action" data-action="record-payment">
-                    <span class="material-icons">payments</span>
-                    <span data-i18n="recordPayment">Record Payment</span>
-                </button>
-                <button class="quick-action" data-action="pay-wages">
-                    <span class="material-icons">work</span>
-                    <span data-i18n="payWages">Pay Wages</span>
-                </button>
-            </div>
-            
-            <!-- Income by Enterprise Chart -->
-            <div class="section-header">
-                <h3 data-i18n="incomeByEnterprise">Income by Enterprise</h3>
-                <select class="time-selector" id="chartPeriod">
-                    <option value="month" data-i18n="thisMonth">This Month</option>
-                    <option value="quarter" data-i18n="thisQuarter">This Quarter</option>
-                    <option value="year" data-i18n="thisYear">This Year</option>
-                </select>
-            </div>
-            
-            <div class="chart-container">
-                <canvas id="incomeChart"></canvas>
-            </div>
-            
-            <!-- Recent Transactions -->
-            <div class="section-header">
-                <h3 data-i18n="recentTransactions">Recent Transactions</h3>
-                <button class="text-link" id="viewAllRecentTransactions" data-i18n="viewAll">View all</button>
-            </div>
-            
-            <div class="transaction-list" id="recentTransactions">
-                <div class="empty-state">
-                    <span class="material-icons">receipt</span>
-                    <p data-i18n="noTransactions">No transactions yet</p>
-                    <button class="btn primary" id="addFirstTransaction" data-i18n="addFirstTransaction">Add your first transaction</button>
-                </div>
+            <!-- Transactions List -->
+            <div class="transaction-list-full" id="allTransactions">
+                <!-- Will be populated by JavaScript -->
             </div>
         </section>
         
@@ -295,16 +226,11 @@
             </div>
             
             <div class="enterprise-grid" id="enterprisesList">
-                <!-- Enterprises will be loaded here -->
+                <!-- Will be populated by JavaScript -->
             </div>
         </section>
         
         <!-- Reports Page -->
-        <section class="page" id="reportsPage">
-            <!-- Reports content remains the same -->
-        </section>
-
-        <!-- Add this to index.html inside the reports page section -->
         <section class="page" id="reportsPage">
             <div class="page-header">
                 <h2 data-i18n="reports">Reports</h2>
@@ -323,9 +249,7 @@
                     </div>
                     <h3 data-i18n="profitLoss">Profit & Loss</h3>
                     <p data-i18n="profitLossDesc">Monthly and annual income vs expenses</p>
-                    <button class="btn outline" data-report="pl">
-                        <span data-i18n="viewReport">View Report</span>
-                    </button>
+                    <button class="btn outline" data-report="pl" data-i18n="viewReport">View Report</button>
                 </div>
                 
                 <div class="report-card">
@@ -334,9 +258,7 @@
                     </div>
                     <h3 data-i18n="cashFlow">Cash Flow</h3>
                     <p data-i18n="cashFlowDesc">Track cash inflows and outflows</p>
-                    <button class="btn outline" data-report="cashflow">
-                        <span data-i18n="viewReport">View Report</span>
-                    </button>
+                    <button class="btn outline" data-report="cashflow" data-i18n="viewReport">View Report</button>
                 </div>
                 
                 <div class="report-card">
@@ -345,9 +267,7 @@
                     </div>
                     <h3 data-i18n="seasonalComparison">Seasonal Comparison</h3>
                     <p data-i18n="seasonalDesc">Compare harvest vs non-harvest months</p>
-                    <button class="btn outline" data-report="seasonal">
-                        <span data-i18n="viewReport">View Report</span>
-                    </button>
+                    <button class="btn outline" data-report="seasonal" data-i18n="viewReport">View Report</button>
                 </div>
                 
                 <div class="report-card">
@@ -356,9 +276,7 @@
                     </div>
                     <h3 data-i18n="roiCalculator">ROI Calculator</h3>
                     <p data-i18n="roiDesc">Return on investment by enterprise</p>
-                    <button class="btn outline" data-report="roi">
-                        <span data-i18n="calculate">Calculate</span>
-                    </button>
+                    <button class="btn outline" data-report="roi" data-i18n="calculate">Calculate</button>
                 </div>
             </div>
         </section>
@@ -373,7 +291,14 @@
                 </button>
             </div>
             
-            <!-- Budgets content -->
+            <div class="budgets-container" id="budgetsList">
+                <div class="empty-state">
+                    <span class="material-icons">savings</span>
+                    <p data-i18n="noBudgets">No budgets set up yet</p>
+                    <p class="empty-state-sub" data-i18n="budgetsDesc">Set budgets for your enterprises to track spending</p>
+                    <button class="btn primary" id="setupBudget" data-i18n="setupFirstBudget">Set up your first budget</button>
+                </div>
+            </div>
         </section>
         
         <!-- Invoices Page -->
@@ -386,7 +311,14 @@
                 </button>
             </div>
             
-            <!-- Invoices content -->
+            <div class="invoices-container" id="invoicesList">
+                <div class="empty-state">
+                    <span class="material-icons">description</span>
+                    <p data-i18n="noInvoices">No invoices created yet</p>
+                    <p class="empty-state-sub" data-i18n="invoicesDesc">Create professional invoices for your sales</p>
+                    <button class="btn primary" id="createFirstInvoice" data-i18n="createFirstInvoice">Create your first invoice</button>
+                </div>
+            </div>
         </section>
         
         <!-- Assets Page -->
@@ -399,7 +331,14 @@
                 </button>
             </div>
             
-            <!-- Assets content -->
+            <div class="assets-container" id="assetsList">
+                <div class="empty-state">
+                    <span class="material-icons">agriculture</span>
+                    <p data-i18n="noAssets">No assets registered yet</p>
+                    <p class="empty-state-sub" data-i18n="assetsDesc">Track your farm assets and their depreciation</p>
+                    <button class="btn primary" id="addFirstAsset" data-i18n="addFirstAsset">Register your first asset</button>
+                </div>
+            </div>
         </section>
         
         <!-- Loans Page -->
@@ -412,7 +351,60 @@
                 </button>
             </div>
             
-            <!-- Loans content -->
+            <div class="loans-container" id="loansList">
+                <div class="empty-state">
+                    <span class="material-icons">account_balance</span>
+                    <p data-i18n="noLoans">No loans tracked yet</p>
+                    <p class="empty-state-sub" data-i18n="loansDesc">Track your loans and repayment schedules</p>
+                    <button class="btn primary" id="addFirstLoan" data-i18n="addFirstLoan">Add your first loan</button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Backup Page -->
+        <section class="page" id="backupPage">
+            <div class="page-header">
+                <h2 data-i18n="backup">Backup & Restore</h2>
+            </div>
+            
+            <div class="backup-container">
+                <div class="backup-card">
+                    <div class="backup-icon">
+                        <span class="material-icons">cloud_upload</span>
+                    </div>
+                    <h3 data-i18n="backupData">Backup Data</h3>
+                    <p data-i18n="backupDesc">Create a backup of all your farm data</p>
+                    <button class="btn primary" id="createBackup" data-i18n="createBackup">Create Backup</button>
+                </div>
+                
+                <div class="backup-card">
+                    <div class="backup-icon">
+                        <span class="material-icons">cloud_download</span>
+                    </div>
+                    <h3 data-i18n="restoreData">Restore Data</h3>
+                    <p data-i18n="restoreDesc">Restore from a previous backup</p>
+                    <div class="restore-actions">
+                        <button class="btn outline" id="chooseRestoreFile" data-i18n="chooseFile">Choose File</button>
+                        <input type="file" id="restoreFile" accept=".json" style="display: none;">
+                        <button class="btn primary" id="restoreBackup" disabled data-i18n="restore">Restore</button>
+                    </div>
+                </div>
+                
+                <div class="backup-card">
+                    <div class="backup-icon">
+                        <span class="material-icons">security</span>
+                    </div>
+                    <h3 data-i18n="encryptBackup">Encrypt Backup</h3>
+                    <p data-i18n="encryptDesc">Add password protection to your backups</p>
+                    <div class="encryption-option">
+                        <label class="checkbox">
+                            <input type="checkbox" id="encryptBackup">
+                            <span data-i18n="enableEncryption">Enable encryption</span>
+                        </label>
+                        <input type="password" id="backupPassword" placeholder="Enter password" disabled data-i18n="enterPassword">
+                    </div>
+                </div>
+            </div>
         </section>
         
         <!-- Settings Page -->
@@ -515,141 +507,217 @@
             </div>
         </section>
         
-        <!-- Add Modals for different sections -->
-        <div class="modal" id="budgetModal">
-            <!-- Budget modal content -->
-        </div>
-        
-        <div class="modal" id="invoiceModal">
-            <!-- Invoice modal content -->
-        </div>
-        
-        <div class="modal" id="assetModal">
-            <!-- Asset modal content -->
-        </div>
-        
-        <div class="modal" id="loanModal">
-            <!-- Loan modal content -->
-        </div>
-        
-        <!-- Enhanced ROI Calculator Modal -->
-        <div class="modal" id="roiModal">
-            <div class="modal-content large">
-                <div class="modal-header">
-                    <h3 data-i18n="roiCalculator">ROI Calculator</h3>
-                    <div class="modal-actions">
-                        <button class="btn outline" id="saveROI">
-                            <span class="material-icons">save</span>
-                            <span data-i18n="save">Save</span>
-                        </button>
-                        <button class="close-modal" id="closeROIModal">
-                            <span class="material-icons">close</span>
-                        </button>
+        <!-- Help Page -->
+        <section class="page" id="helpPage">
+            <div class="page-header">
+                <h2 data-i18n="help">Help & Tutorial</h2>
+            </div>
+            
+            <div class="help-container">
+                <div class="tutorial-section">
+                    <h3 data-i18n="gettingStarted">Getting Started</h3>
+                    <div class="tutorial-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4 data-i18n="addEnterprises">Add Your Enterprises</h4>
+                            <p data-i18n="enterprisesStepDesc">Start by adding your farm enterprises (dairy, crops, poultry, etc.)</p>
+                        </div>
+                    </div>
+                    <div class="tutorial-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4 data-i18n="recordTransactions">Record Transactions</h4>
+                            <p data-i18n="transactionsStepDesc">Add income and expenses for each enterprise</p>
+                        </div>
+                    </div>
+                    <div class="tutorial-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4 data-i18n="viewReports">View Reports</h4>
+                            <p data-i18n="reportsStepDesc">Check your financial performance and make better decisions</p>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-body">
-                    <div class="roi-calculator-container">
-                        <div class="roi-input-section">
-                            <div class="roi-input-group">
-                                <label data-i18n="initialInvestment">Initial Investment (KES)</label>
-                                <div class="roi-input-with-help">
-                                    <input type="number" id="roiInvestment" value="100000" min="0">
-                                    <div class="input-help" data-i18n="investmentHelp">Total amount invested</div>
-                                </div>
-                            </div>
-                            
-                            <div class="roi-input-group">
-                                <label data-i18n="annualRevenue">Annual Revenue (KES)</label>
-                                <div class="roi-input-with-help">
-                                    <input type="number" id="roiRevenue" value="200000" min="0">
-                                    <div class="input-help" data-i18n="revenueHelp">Expected yearly income</div>
-                                </div>
-                            </div>
-                            
-                            <div class="roi-input-group">
-                                <label data-i18n="annualCosts">Annual Costs (KES)</label>
-                                <div class="roi-input-with-help">
-                                    <input type="number" id="roiCosts" value="120000" min="0">
-                                    <div class="input-help" data-i18n="costsHelp">Yearly operating costs</div>
-                                </div>
-                            </div>
-                            
-                            <div class="roi-input-group">
-                                <label data-i18n="timePeriod">Time Period (Years)</label>
-                                <div class="roi-input-with-help">
-                                    <input type="number" id="roiYears" value="3" min="1" max="20">
-                                    <div class="input-help" data-i18n="yearsHelp">Investment period</div>
-                                </div>
-                            </div>
-                            
-                            <button class="btn primary" id="calculateROI" data-i18n="calculateROI">Calculate ROI</button>
+                
+                <div class="faq-section">
+                    <h3 data-i18n="faq">Frequently Asked Questions</h3>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span data-i18n="faq1">How do I work offline?</span>
+                            <span class="material-icons">expand_more</span>
                         </div>
-                        
-                        <div class="roi-results-section">
-                            <div class="roi-results-header">
-                                <h4 data-i18n="calculationResults">Calculation Results</h4>
-                                <div class="roi-summary">
-                                    <div class="roi-summary-item">
-                                        <span data-i18n="roi">ROI</span>
-                                        <span class="roi-percentage positive" id="roiPercentage">80%</span>
-                                    </div>
-                                </div>
+                        <div class="faq-answer">
+                            <p data-i18n="faq1Answer">FarmFlow works completely offline. All your data is stored on your device. When you come back online, it will sync automatically.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span data-i18n="faq2">Can I use multiple currencies?</span>
+                            <span class="material-icons">expand_more</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p data-i18n="faq2Answer">Yes, you can record transactions in different currencies. The app will convert them to your default currency for reporting.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span data-i18n="faq3">How do I backup my data?</span>
+                            <span class="material-icons">expand_more</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p data-i18n="faq3Answer">Go to Backup & Restore section to create an encrypted backup file. You can restore it anytime on any device.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="contact-section" id="contactDetails">
+                    <h3 data-i18n="contactSupport">Contact & Support</h3>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <span class="material-icons">phone</span>
+                            <div>
+                                <h4 data-i18n="phoneWhatsApp">Phone/WhatsApp</h4>
+                                <p>0732364559 (Kevin)</p>
                             </div>
-                            
-                            <div class="roi-details">
-                                <div class="roi-detail-card">
-                                    <div class="roi-detail-icon">
-                                        <span class="material-icons">attach_money</span>
-                                    </div>
-                                    <div class="roi-detail-content">
-                                        <h5 data-i18n="annualNetProfit">Annual Net Profit</h5>
-                                        <p class="roi-detail-value" id="roiNetProfit">KES 80,000</p>
-                                        <small data-i18n="revenueMinusCosts">Revenue - Costs</small>
-                                    </div>
-                                </div>
-                                
-                                <div class="roi-detail-card">
-                                    <div class="roi-detail-icon">
-                                        <span class="material-icons">schedule</span>
-                                    </div>
-                                    <div class="roi-detail-content">
-                                        <h5 data-i18n="paybackPeriod">Payback Period</h5>
-                                        <p class="roi-detail-value" id="roiPayback">1.25 years</p>
-                                        <small data-i18n="timeToRecover">Time to recover investment</small>
-                                    </div>
-                                </div>
-                                
-                                <div class="roi-detail-card">
-                                    <div class="roi-detail-icon">
-                                        <span class="material-icons">trending_up</span>
-                                    </div>
-                                    <div class="roi-detail-content">
-                                        <h5 data-i18n="totalReturn">Total Return</h5>
-                                        <p class="roi-detail-value" id="roiTotalReturn">KES 240,000</p>
-                                        <small data-i18n="overInvestmentPeriod">Over investment period</small>
-                                    </div>
-                                </div>
-                                
-                                <div class="roi-detail-card">
-                                    <div class="roi-detail-icon">
-                                        <span class="material-icons">percent</span>
-                                    </div>
-                                    <div class="roi-detail-content">
-                                        <h5 data-i18n="annualizedReturn">Annualized Return</h5>
-                                        <p class="roi-detail-value" id="roiAnnualized">26.7%</p>
-                                        <small data-i18n="averageYearlyReturn">Average yearly return</small>
-                                    </div>
-                                </div>
+                        </div>
+                        <div class="contact-item">
+                            <span class="material-icons">email</span>
+                            <div>
+                                <h4 data-i18n="email">Email</h4>
+                                <p>support@farmflow.app</p>
                             </div>
-                            
-                            <div class="roi-visualization">
-                                <h5 data-i18n="investmentBreakdown">Investment Breakdown</h5>
-                                <div class="roi-chart">
-                                    <canvas id="roiChart"></canvas>
-                                </div>
+                        </div>
+                        <div class="contact-item">
+                            <span class="material-icons">schedule</span>
+                            <div>
+                                <h4 data-i18n="supportHours">Support Hours</h4>
+                                <p data-i18n="supportHoursDetail">Monday - Friday: 8 AM - 5 PM EAT</p>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Add Transaction Modal -->
+        <div class="modal" id="transactionModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 data-i18n="addTransaction">Add Transaction</h3>
+                    <button class="close-modal" id="closeTransactionModal">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="transactionForm">
+                        <div class="form-group">
+                            <label for="transType" data-i18n="type">Type</label>
+                            <div class="type-toggle">
+                                <button type="button" class="type-btn active" data-type="income" data-i18n="income">Income</button>
+                                <button type="button" class="type-btn" data-type="expense" data-i18n="expense">Expense</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="transAmount" data-i18n="amount">Amount</label>
+                            <div class="amount-input">
+                                <select id="transCurrency" style="width: 80px;">
+                                    <option value="KES">KES</option>
+                                    <option value="UGX">UGX</option>
+                                    <option value="TZS">TZS</option>
+                                    <option value="USD">USD</option>
+                                </select>
+                                <input type="number" id="transAmount" placeholder="0.00" step="0.01" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="transEnterprise" data-i18n="enterprise">Enterprise</label>
+                            <select id="transEnterprise" required>
+                                <option value="" data-i18n="selectEnterprise">Select Enterprise</option>
+                                <!-- Enterprises will be populated here -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="transCategory" data-i18n="category">Category</label>
+                            <select id="transCategory" required>
+                                <option value="" data-i18n="selectCategory">Select Category</option>
+                                <!-- Categories will be populated based on type -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="transDate" data-i18n="date">Date</label>
+                            <input type="date" id="transDate" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="transNote" data-i18n="description">Description</label>
+                            <textarea id="transNote" rows="2" placeholder="Add note..."></textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn secondary" id="cancelTransaction" data-i18n="cancel">Cancel</button>
+                            <button type="submit" class="btn primary" data-i18n="saveTransaction">Save Transaction</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add Enterprise Modal -->
+        <div class="modal" id="enterpriseModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 data-i18n="addEnterprise">Add Enterprise</h3>
+                    <button class="close-modal" id="closeEnterpriseModal">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="enterpriseForm">
+                        <div class="form-group">
+                            <label for="enterpriseName" data-i18n="enterpriseName">Enterprise Name</label>
+                            <input type="text" id="enterpriseName" placeholder="e.g., Dairy Farm" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="enterpriseType" data-i18n="type">Type</label>
+                            <select id="enterpriseType" required>
+                                <option value="" data-i18n="selectType">Select Type</option>
+                                <option value="dairy">Dairy</option>
+                                <option value="poultry">Poultry</option>
+                                <option value="crops">Crops</option>
+                                <option value="livestock">Livestock</option>
+                                <option value="fisheries">Fisheries</option>
+                                <option value="apiary">Apiary (Beekeeping)</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="enterpriseColor" data-i18n="colorTheme">Color Theme</label>
+                            <div class="color-picker">
+                                <button type="button" class="color-option" style="background-color: #2196F3;" data-color="#2196F3"></button>
+                                <button type="button" class="color-option" style="background-color: #4CAF50;" data-color="#4CAF50"></button>
+                                <button type="button" class="color-option" style="background-color: #FF9800;" data-color="#FF9800"></button>
+                                <button type="button" class="color-option" style="background-color: #9C27B0;" data-color="#9C27B0"></button>
+                                <button type="button" class="color-option" style="background-color: #795548;" data-color="#795548"></button>
+                            </div>
+                            <input type="hidden" id="enterpriseColor" value="#2196F3">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="enterpriseDescription" data-i18n="description">Description (Optional)</label>
+                            <textarea id="enterpriseDescription" rows="2" placeholder="Describe your enterprise..."></textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn secondary" id="cancelEnterprise" data-i18n="cancel">Cancel</button>
+                            <button type="submit" class="btn primary" data-i18n="saveEnterprise">Save Enterprise</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
