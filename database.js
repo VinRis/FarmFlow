@@ -1,4 +1,4 @@
-// database.js - Simplified version
+// database.js - Simplified working version
 class FarmFlowDatabase {
     constructor() {
         this.db = null;
@@ -9,15 +9,23 @@ class FarmFlowDatabase {
         this.db = new Dexie('FarmFlowDB');
         
         this.db.version(1).stores({
-            transactions: '++id, date, type, enterprise, category, amount, currency, synced, createdAt',
-            enterprises: '++id, name, type, color, description, createdAt',
-            budgets: '++id, enterprise, month, year, amount, spent, createdAt',
-            loans: '++id, provider, amount, interest, term, startDate, status, createdAt',
-            assets: '++id, name, type, value, purchaseDate, depreciation, createdAt'
+            transactions: '++id, date, type, enterprise, category, amount, currency, note, synced, createdAt',
+            enterprises: '++id, name, type, color, description, createdAt'
         });
         
         await this.db.open();
         console.log('Database initialized');
+        
+        // Add default enterprises if none exist
+        const enterpriseCount = await this.db.enterprises.count();
+        if (enterpriseCount === 0) {
+            await this.db.enterprises.bulkAdd([
+                { name: 'Dairy', type: 'dairy', color: '#2196F3', description: 'Dairy farming', createdAt: new Date().toISOString() },
+                { name: 'Poultry', type: 'poultry', color: '#FF9800', description: 'Poultry farming', createdAt: new Date().toISOString() },
+                { name: 'Crops', type: 'crops', color: '#4CAF50', description: 'Crop farming', createdAt: new Date().toISOString() },
+                { name: 'Livestock', type: 'livestock', color: '#795548', description: 'Livestock farming', createdAt: new Date().toISOString() }
+            ]);
+        }
     }
     
     // Transaction methods
@@ -36,23 +44,11 @@ class FarmFlowDatabase {
             collection = collection.filter(t => t.enterprise === filters.enterprise);
         }
         
-        if (filters.startDate && filters.endDate) {
-            collection = collection.filter(t => {
-                const date = new Date(t.date);
-                return date >= new Date(filters.startDate) && 
-                       date <= new Date(filters.endDate);
-            });
-        }
-        
         return await collection.reverse().toArray();
     }
     
     async getTransaction(id) {
         return await this.db.transactions.get(id);
-    }
-    
-    async updateTransaction(id, updates) {
-        return await this.db.transactions.update(id, updates);
     }
     
     async deleteTransaction(id) {
@@ -81,32 +77,23 @@ class FarmFlowDatabase {
         return await this.db.enterprises.get(id);
     }
     
-    // Export/Import methods
+    // Export/Import
     async exportData() {
         const data = {
             transactions: await this.db.transactions.toArray(),
             enterprises: await this.db.enterprises.toArray(),
-            budgets: await this.db.budgets.toArray(),
-            loans: await this.db.loans.toArray(),
-            assets: await this.db.assets.toArray(),
             exportDate: new Date().toISOString(),
             version: '1.0'
         };
-        
         return JSON.stringify(data, null, 2);
     }
     
     async importData(jsonData) {
         const data = JSON.parse(jsonData);
         
-        // Clear existing data
         await this.db.transactions.clear();
         await this.db.enterprises.clear();
-        await this.db.budgets.clear();
-        await this.db.loans.clear();
-        await this.db.assets.clear();
         
-        // Import new data
         if (data.transactions) {
             await this.db.transactions.bulkAdd(data.transactions);
         }
@@ -115,23 +102,11 @@ class FarmFlowDatabase {
             await this.db.enterprises.bulkAdd(data.enterprises);
         }
         
-        if (data.budgets) {
-            await this.db.budgets.bulkAdd(data.budgets);
-        }
-        
-        if (data.loans) {
-            await this.db.loans.bulkAdd(data.loans);
-        }
-        
-        if (data.assets) {
-            await this.db.assets.bulkAdd(data.assets);
-        }
-        
         return true;
     }
 }
 
-// Initialize database when DOM is loaded
+// Initialize database
 document.addEventListener('DOMContentLoaded', () => {
     window.database = new FarmFlowDatabase();
 });
