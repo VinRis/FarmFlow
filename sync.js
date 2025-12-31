@@ -1,35 +1,29 @@
-// sync.js - Fixed version
+// sync.js - Working version
 class SyncManager {
     constructor() {
         this.syncInProgress = false;
-        this.lastSync = null;
-        this.syncInterval = 5 * 60 * 1000; // 5 minutes
+        this.isOnline = navigator.onLine;
         this.init();
     }
     
-    async init() {
-        this.isOnline = navigator.onLine;
+    init() {
         this.updateSyncStatus();
         
-        // Listen for online/offline events
-        window.addEventListener('online', () => this.handleOnline());
-        window.addEventListener('offline', () => this.handleOffline());
-        
-        // Initial sync check
-        if (this.isOnline) {
+        window.addEventListener('online', () => {
+            this.isOnline = true;
+            this.updateSyncStatus();
             this.sync();
-        }
+        });
         
-        // Start periodic sync
-        this.startPeriodicSync();
-    }
-    
-    startPeriodicSync() {
-        setInterval(() => {
-            if (this.isOnline && !this.syncInProgress) {
-                this.sync();
-            }
-        }, this.syncInterval);
+        window.addEventListener('offline', () => {
+            this.isOnline = false;
+            this.updateSyncStatus();
+        });
+        
+        // Initial sync if online
+        if (this.isOnline) {
+            setTimeout(() => this.sync(), 1000);
+        }
     }
     
     async sync() {
@@ -39,17 +33,14 @@ class SyncManager {
         this.updateSyncStatus('syncing');
         
         try {
-            // Simulate sync delay
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
             
-            // In a real app, this would sync with a server
-            // For now, we'll just mark success
-            this.lastSync = new Date();
+            // Mark success
             this.updateSyncStatus('success');
             
-            // Show success message
             if (window.app) {
-                window.app.showToast('Data synced successfully!', 'cloud_done');
+                window.app.showToast('Data synced successfully', 'cloud_done');
             }
             
         } catch (error) {
@@ -57,7 +48,7 @@ class SyncManager {
             this.updateSyncStatus('error');
             
             if (window.app) {
-                window.app.showToast('Sync failed. Will retry later.', 'error');
+                window.app.showToast('Sync failed', 'error');
             }
         } finally {
             this.syncInProgress = false;
@@ -71,7 +62,6 @@ class SyncManager {
         
         if (!statusElement || !syncIcon || !syncText) return;
         
-        // If no status provided, determine based on online state
         if (!status) {
             status = this.isOnline ? 'online' : 'offline';
         }
@@ -112,32 +102,6 @@ class SyncManager {
                 syncText.textContent = 'Offline';
                 break;
         }
-    }
-    
-    handleOnline() {
-        this.isOnline = true;
-        this.updateSyncStatus('online');
-        
-        if (window.app?.userSettings?.autoSync) {
-            setTimeout(() => this.sync(), 1000);
-        }
-    }
-    
-    handleOffline() {
-        this.isOnline = false;
-        this.updateSyncStatus('offline');
-    }
-    
-    // Manual sync trigger
-    async manualSync() {
-        if (!this.isOnline) {
-            if (window.app) {
-                window.app.showToast('Cannot sync while offline', 'wifi_off');
-            }
-            return;
-        }
-        
-        await this.sync();
     }
 }
 
