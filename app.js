@@ -1,9 +1,10 @@
-// app.js - Complete update with all enhancements
+// app.js - Complete fixed version
 class FarmFlowApp {
     constructor() {
         this.currentPage = 'dashboard';
         this.currentLanguage = 'en';
         this.isOnline = navigator.onLine;
+        this.syncQueue = [];
         this.translations = {
             en: {
                 // Dashboard
@@ -26,7 +27,6 @@ class FarmFlowApp {
                 recentTransactions: 'Recent Transactions',
                 noTransactions: 'No transactions yet',
                 addFirstTransaction: 'Add your first transaction',
-                thisMonth: 'This Month',
                 thisQuarter: 'This Quarter',
                 thisYear: 'This Year',
                 
@@ -111,7 +111,6 @@ class FarmFlowApp {
                 recentTransactions: 'Miamala ya Hivi Karibuni',
                 noTransactions: 'Hakuna miamala bado',
                 addFirstTransaction: 'Ongeza miamala yako ya kwanza',
-                thisMonth: 'Mwezi Huu',
                 thisQuarter: 'Robo Hii',
                 thisYear: 'Mwaka Huu',
                 
@@ -219,6 +218,11 @@ class FarmFlowApp {
         this.setupServiceWorker();
         this.setupInstallPrompt();
         this.setupDrawerOverlay();
+        
+        // Initialize sync manager
+        if (window.syncManager) {
+            window.syncManager.init();
+        }
     }
     
     setupEventListeners() {
@@ -226,32 +230,33 @@ class FarmFlowApp {
         document.getElementById('menuBtn').addEventListener('click', () => this.toggleDrawer(true));
         document.getElementById('closeDrawer').addEventListener('click', () => this.toggleDrawer(false));
         
-        // Drawer overlay for closing on outside click
-        document.getElementById('mainContent').addEventListener('click', () => {
-            if (window.innerWidth < 768) {
-                this.toggleDrawer(false);
-            }
-        });
-        
-        // Search functionality
+        // Search functionality - FIXED
         document.getElementById('searchBtn').addEventListener('click', () => this.showSearch());
         document.getElementById('closeSearch').addEventListener('click', () => this.hideSearch());
         document.getElementById('globalSearch').addEventListener('input', (e) => this.performSearch(e.target.value));
         
-        // Page navigation
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                const page = item.getAttribute('data-page');
-                this.navigateTo(page);
-                this.toggleDrawer(false);
+        // Modern theme toggle - FIXED
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener('change', (e) => {
+                this.toggleTheme(e.target.checked);
             });
-        });
+        }
         
-        // Modern theme toggle
-        document.getElementById('darkModeToggle').addEventListener('change', (e) => {
-            this.toggleTheme(e.target.checked);
-        });
+        // Header theme toggle - FIXED
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const isDark = currentTheme === 'dark';
+                this.toggleTheme(!isDark);
+                
+                // Update toggle in settings
+                if (document.getElementById('darkModeToggle')) {
+                    document.getElementById('darkModeToggle').checked = !isDark;
+                }
+            });
+        }
         
         // Language selection
         document.querySelectorAll('.lang-btn').forEach(btn => {
@@ -269,29 +274,58 @@ class FarmFlowApp {
             });
         });
         
-        // View all buttons
+        // View all buttons - FIXED
         document.getElementById('viewAllTransactions').addEventListener('click', () => this.navigateTo('transactions'));
         document.getElementById('viewAllRecentTransactions').addEventListener('click', () => this.navigateTo('transactions'));
         
-        // FAB
+        // FAB - FIXED
         document.getElementById('fab').addEventListener('click', () => this.showTransactionModal());
         
-        // Insights period change
-        document.getElementById('insightsPeriod').addEventListener('change', () => this.updateEnterpriseInsights());
-        document.getElementById('chartPeriod').addEventListener('change', () => this.updateDashboard());
+        // Transaction page buttons - FIXED
+        document.getElementById('addTransaction')?.addEventListener('click', () => this.showTransactionModal());
+        document.getElementById('addFirstTransaction')?.addEventListener('click', () => this.showTransactionModal());
         
-        // Add buttons for different pages
+        // Insights period change
+        document.getElementById('insightsPeriod')?.addEventListener('change', () => this.updateEnterpriseInsights());
+        document.getElementById('chartPeriod')?.addEventListener('change', () => this.updateDashboard());
+        
+        // Enterprise page - FIXED
+        document.getElementById('addEnterpriseBtn')?.addEventListener('click', () => this.showEnterpriseModal());
+        
+        // Reports page - FIXED
+        document.querySelectorAll('[data-report]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const reportType = e.currentTarget.getAttribute('data-report');
+                this.showReport(reportType);
+            });
+        });
+        
+        // Add buttons for different pages - FIXED
         document.getElementById('addBudgetBtn')?.addEventListener('click', () => this.showBudgetModal());
         document.getElementById('addInvoiceBtn')?.addEventListener('click', () => this.showInvoiceModal());
         document.getElementById('addAssetBtn')?.addEventListener('click', () => this.showAssetModal());
         document.getElementById('addLoanBtn')?.addEventListener('click', () => this.showLoanModal());
         
+        // Transaction form - FIXED
+        document.getElementById('transactionForm')?.addEventListener('submit', (e) => this.saveTransaction(e));
+        document.getElementById('closeTransactionModal')?.addEventListener('click', () => this.hideTransactionModal());
+        document.getElementById('cancelTransaction')?.addEventListener('click', () => this.hideTransactionModal());
+        
+        // Transaction type toggle
+        document.querySelectorAll('.type-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.updateTransactionCategories();
+            });
+        });
+        
         // Settings
-        document.getElementById('userNameInput').addEventListener('change', (e) => this.updateUserName(e.target.value));
-        document.getElementById('defaultCurrency').addEventListener('change', (e) => this.updateCurrency(e.target.value));
-        document.getElementById('autoSync').addEventListener('change', (e) => this.updateAutoSync(e.target.checked));
-        document.getElementById('notifications').addEventListener('change', (e) => this.updateNotifications(e.target.checked));
-        document.getElementById('reduceMotion').addEventListener('change', (e) => this.updateReduceMotion(e.target.checked));
+        document.getElementById('userNameInput')?.addEventListener('change', (e) => this.updateUserName(e.target.value));
+        document.getElementById('defaultCurrency')?.addEventListener('change', (e) => this.updateCurrency(e.target.value));
+        document.getElementById('autoSync')?.addEventListener('change', (e) => this.updateAutoSync(e.target.checked));
+        document.getElementById('notifications')?.addEventListener('change', (e) => this.updateNotifications(e.target.checked));
+        document.getElementById('reduceMotion')?.addEventListener('change', (e) => this.updateReduceMotion(e.target.checked));
         
         // Online/offline events
         window.addEventListener('online', () => this.handleOnline());
@@ -328,6 +362,8 @@ class FarmFlowApp {
     }
     
     navigateTo(page) {
+        console.log('Navigating to:', page);
+        
         // Update active nav item
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
@@ -355,7 +391,7 @@ class FarmFlowApp {
                     this.loadEnterprises();
                     break;
                 case 'reports':
-                    // Reports loaded on button click
+                    // Reports are loaded on button click
                     break;
                 case 'budgets':
                     this.loadBudgets();
@@ -370,33 +406,297 @@ class FarmFlowApp {
                     this.loadLoans();
                     break;
                 case 'backup':
-                    // Backup page doesn't need data loading
+                    this.loadBackupPage();
                     break;
                 case 'settings':
                     this.loadSettings();
                     break;
                 case 'help':
-                    // Help page is static
+                    this.loadHelpPage();
                     break;
             }
         }
     }
     
+    showSearch() {
+        document.getElementById('searchOverlay').classList.add('active');
+        document.getElementById('globalSearch').focus();
+    }
+    
+    hideSearch() {
+        document.getElementById('searchOverlay').classList.remove('active');
+        document.getElementById('globalSearch').value = '';
+        document.getElementById('searchResults').innerHTML = '';
+    }
+    
+    async performSearch(query) {
+        if (query.length < 2) {
+            document.getElementById('searchResults').innerHTML = '';
+            return;
+        }
+        
+        const results = [];
+        
+        // Search transactions
+        if (window.database) {
+            const transactions = await window.database.searchTransactions(query);
+            transactions.forEach(t => {
+                results.push({
+                    type: 'transaction',
+                    title: t.category,
+                    details: `${t.type === 'income' ? '+' : '-'} ${t.currency} ${t.amount} - ${t.enterprise}`,
+                    date: t.date,
+                    action: () => {
+                        this.hideSearch();
+                        this.navigateTo('transactions');
+                    }
+                });
+            });
+            
+            // Search enterprises
+            const enterprises = await window.database.getEnterprises();
+            enterprises.filter(e => e.name.toLowerCase().includes(query.toLowerCase())).forEach(e => {
+                results.push({
+                    type: 'enterprise',
+                    title: e.name,
+                    details: e.type,
+                    action: () => {
+                        this.hideSearch();
+                        this.navigateTo('enterprises');
+                    }
+                });
+            });
+        }
+        
+        this.displaySearchResults(results);
+    }
+    
+    displaySearchResults(results) {
+        const container = document.getElementById('searchResults');
+        
+        if (results.length === 0) {
+            container.innerHTML = `
+                <div class="search-result-item">
+                    <div class="search-result-title">No results found</div>
+                    <div class="search-result-details">Try different keywords</div>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = results.map(result => `
+            <div class="search-result-item" onclick="app.executeSearchAction(${JSON.stringify(result.action).replace(/"/g, '&quot;')})">
+                <div class="search-result-type">${result.type}</div>
+                <div class="search-result-title">${result.title}</div>
+                <div class="search-result-details">${result.details}</div>
+            </div>
+        `).join('');
+    }
+    
+    executeSearchAction(action) {
+        action();
+    }
+    
+    toggleTheme(isDark) {
+        const newTheme = isDark ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        this.userSettings.theme = newTheme;
+        this.saveUserSettings();
+        
+        // Update theme toggle UI
+        const themeIcon = document.querySelector('#themeIcon');
+        if (themeIcon) {
+            themeIcon.textContent = newTheme === 'dark' ? 'light_mode' : 'dark_mode';
+        }
+        
+        // Update header theme toggle
+        const headerThemeIcon = document.querySelector('.theme-icon');
+        if (headerThemeIcon) {
+            headerThemeIcon.textContent = newTheme === 'dark' ? 'light_mode' : 'dark_mode';
+        }
+        
+        // Update toggle switch state
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        if (darkModeToggle) {
+            darkModeToggle.checked = isDark;
+        }
+    }
+    
+    setLanguage(lang) {
+        this.currentLanguage = lang;
+        this.userSettings.language = lang;
+        this.saveUserSettings();
+        
+        // Update UI
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-lang') === lang) {
+                btn.classList.add('active');
+            }
+        });
+        
+        // Translate the entire page
+        this.translatePage();
+    }
+    
+    translatePage() {
+        const translations = this.translations[this.currentLanguage];
+        
+        // Translate all elements with data-i18n attribute
+        document.querySelectorAll('[data-i18n]').forEach(element => {
+            const key = element.getAttribute('data-i18n');
+            if (translations[key]) {
+                element.textContent = translations[key];
+            }
+        });
+        
+        // Update sync status text
+        const syncText = document.getElementById('syncText');
+        if (syncText && translations.online) {
+            syncText.textContent = this.isOnline ? translations.online : 'Offline';
+        }
+    }
+    
+    checkOnlineStatus() {
+        this.isOnline = navigator.onLine;
+        const statusElement = document.getElementById('syncStatus');
+        const syncIcon = document.getElementById('syncIcon');
+        const syncText = document.getElementById('syncText');
+        
+        if (this.isOnline) {
+            statusElement.className = 'sync-status';
+            syncIcon.textContent = 'cloud_done';
+            syncText.textContent = 'Online';
+            document.getElementById('offlineIndicator').classList.remove('show');
+        } else {
+            statusElement.className = 'sync-status offline';
+            syncIcon.textContent = 'cloud_off';
+            syncText.textContent = 'Offline';
+            document.getElementById('offlineIndicator').classList.add('show');
+        }
+    }
+    
+    handleOnline() {
+        this.isOnline = true;
+        this.checkOnlineStatus();
+        this.showToast('Back online. Syncing data...', 'wifi');
+        
+        if (this.userSettings.autoSync && window.syncManager) {
+            window.syncManager.manualSync();
+        }
+    }
+    
+    handleOffline() {
+        this.isOnline = false;
+        this.checkOnlineStatus();
+        this.showToast('You are offline. Changes will sync when back online.', 'wifi_off');
+    }
+    
+    async setupDatabase() {
+        // Wait for database to initialize
+        return new Promise((resolve) => {
+            const checkDatabase = () => {
+                if (window.database) {
+                    console.log('Database initialized');
+                    resolve();
+                } else {
+                    setTimeout(checkDatabase, 100);
+                }
+            };
+            checkDatabase();
+        });
+    }
+    
+    async loadInitialData() {
+        // Load enterprises
+        if (window.database) {
+            this.enterprises = await window.database.getEnterprises();
+            
+            if (this.enterprises.length === 0) {
+                // Add default enterprises
+                const defaultEnterprises = [
+                    { name: 'Dairy', type: 'dairy', color: '#2196F3', icon: 'agriculture' },
+                    { name: 'Poultry', type: 'poultry', color: '#FF9800', icon: 'egg' },
+                    { name: 'Crops', type: 'crops', color: '#4CAF50', icon: 'grass' },
+                    { name: 'Livestock', type: 'livestock', color: '#795548', icon: 'pets' }
+                ];
+                
+                for (const enterprise of defaultEnterprises) {
+                    await window.database.addEnterprise(enterprise);
+                }
+                
+                this.enterprises = await window.database.getEnterprises();
+            }
+        }
+        
+        // Update enterprise dropdowns
+        this.updateEnterpriseDropdowns();
+    }
+    
+    updateEnterpriseDropdowns() {
+        const enterpriseSelects = [
+            document.getElementById('transEnterprise')
+        ].filter(el => el);
+        
+        enterpriseSelects.forEach(select => {
+            // Clear existing options except first
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+            
+            // Add enterprise options
+            this.enterprises.forEach(enterprise => {
+                const option = document.createElement('option');
+                option.value = enterprise.name;
+                option.textContent = enterprise.name;
+                select.appendChild(option);
+            });
+        });
+    }
+    
+    updateTransactionCategories() {
+        const type = document.querySelector('.type-btn.active')?.getAttribute('data-type');
+        if (!type) return;
+        
+        const categorySelect = document.getElementById('transCategory');
+        if (!categorySelect) return;
+        
+        // Clear existing options
+        while (categorySelect.options.length > 1) {
+            categorySelect.remove(1);
+        }
+        
+        // Add categories based on type
+        this.categories[type]?.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categorySelect.appendChild(option);
+        });
+    }
+    
     async updateDashboard() {
-        if (!window.database) return;
+        if (!window.database) {
+            console.error('Database not available');
+            return;
+        }
         
-        // Calculate KPIs
-        const transactions = await window.database.getTransactions();
-        await this.updateKPIs(transactions);
-        
-        // Update enterprise insights
-        await this.updateEnterpriseInsights();
-        
-        // Update chart
-        this.updateIncomeChart(transactions);
-        
-        // Update recent transactions
-        this.updateRecentTransactions(transactions);
+        try {
+            // Calculate KPIs
+            const transactions = await window.database.getTransactions();
+            await this.updateKPIs(transactions);
+            
+            // Update enterprise insights
+            await this.updateEnterpriseInsights();
+            
+            // Update chart
+            this.updateIncomeChart(transactions);
+            
+            // Update recent transactions
+            this.updateRecentTransactions(transactions);
+        } catch (error) {
+            console.error('Error updating dashboard:', error);
+        }
     }
     
     async updateKPIs(transactions) {
@@ -470,78 +770,82 @@ class FarmFlowApp {
     async updateEnterpriseInsights() {
         if (!window.database || this.enterprises.length === 0) return;
         
-        const transactions = await window.database.getTransactions();
-        const period = document.getElementById('insightsPeriod').value;
-        const now = new Date();
-        
-        // Filter transactions based on period
-        let filteredTransactions = transactions;
-        if (period === 'month') {
-            const currentMonth = now.getMonth();
-            const currentYear = now.getFullYear();
-            filteredTransactions = transactions.filter(t => {
-                const transDate = new Date(t.date);
-                return transDate.getMonth() === currentMonth && 
-                       transDate.getFullYear() === currentYear;
-            });
-        } else if (period === 'quarter') {
-            const currentQuarter = Math.floor(now.getMonth() / 3);
-            const currentYear = now.getFullYear();
-            filteredTransactions = transactions.filter(t => {
-                const transDate = new Date(t.date);
-                const quarter = Math.floor(transDate.getMonth() / 3);
-                return quarter === currentQuarter && 
-                       transDate.getFullYear() === currentYear;
-            });
-        } else if (period === 'year') {
-            const currentYear = now.getFullYear();
-            filteredTransactions = transactions.filter(t => {
-                const transDate = new Date(t.date);
-                return transDate.getFullYear() === currentYear;
-            });
-        }
-        
-        // Calculate enterprise performance
-        const enterprisePerformance = {};
-        this.enterprises.forEach(ent => {
-            enterprisePerformance[ent.name] = {
-                income: 0,
-                expense: 0,
-                net: 0,
-                color: ent.color,
-                icon: ent.icon || 'business'
-            };
-        });
-        
-        filteredTransactions.forEach(t => {
-            if (enterprisePerformance[t.enterprise]) {
-                if (t.type === 'income') {
-                    enterprisePerformance[t.enterprise].income += t.amount;
-                } else {
-                    enterprisePerformance[t.enterprise].expense += t.amount;
-                }
-            }
-        });
-        
-        // Calculate net and find best performer
-        let bestEnterprise = null;
-        let bestNet = -Infinity;
-        
-        Object.keys(enterprisePerformance).forEach(name => {
-            const perf = enterprisePerformance[name];
-            perf.net = perf.income - perf.expense;
+        try {
+            const transactions = await window.database.getTransactions();
+            const period = document.getElementById('insightsPeriod')?.value || 'month';
+            const now = new Date();
             
-            if (perf.net > bestNet) {
-                bestNet = perf.net;
-                bestEnterprise = { name, ...perf };
+            // Filter transactions based on period
+            let filteredTransactions = transactions;
+            if (period === 'month') {
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+                filteredTransactions = transactions.filter(t => {
+                    const transDate = new Date(t.date);
+                    return transDate.getMonth() === currentMonth && 
+                           transDate.getFullYear() === currentYear;
+                });
+            } else if (period === 'quarter') {
+                const currentQuarter = Math.floor(now.getMonth() / 3);
+                const currentYear = now.getFullYear();
+                filteredTransactions = transactions.filter(t => {
+                    const transDate = new Date(t.date);
+                    const quarter = Math.floor(transDate.getMonth() / 3);
+                    return quarter === currentQuarter && 
+                           transDate.getFullYear() === currentYear;
+                });
+            } else if (period === 'year') {
+                const currentYear = now.getFullYear();
+                filteredTransactions = transactions.filter(t => {
+                    const transDate = new Date(t.date);
+                    return transDate.getFullYear() === currentYear;
+                });
             }
-        });
-        
-        // Update insights grid
-        this.updateInsightsGrid(enterprisePerformance);
-        
-        // Update best enterprise on enterprises page
-        this.updateBestEnterpriseSummary(bestEnterprise);
+            
+            // Calculate enterprise performance
+            const enterprisePerformance = {};
+            this.enterprises.forEach(ent => {
+                enterprisePerformance[ent.name] = {
+                    income: 0,
+                    expense: 0,
+                    net: 0,
+                    color: ent.color,
+                    icon: ent.icon || 'business'
+                };
+            });
+            
+            filteredTransactions.forEach(t => {
+                if (enterprisePerformance[t.enterprise]) {
+                    if (t.type === 'income') {
+                        enterprisePerformance[t.enterprise].income += t.amount;
+                    } else {
+                        enterprisePerformance[t.enterprise].expense += t.amount;
+                    }
+                }
+            });
+            
+            // Calculate net and find best performer
+            let bestEnterprise = null;
+            let bestNet = -Infinity;
+            
+            Object.keys(enterprisePerformance).forEach(name => {
+                const perf = enterprisePerformance[name];
+                perf.net = perf.income - perf.expense;
+                
+                if (perf.net > bestNet) {
+                    bestNet = perf.net;
+                    bestEnterprise = { name, ...perf };
+                }
+            });
+            
+            // Update insights grid
+            this.updateInsightsGrid(enterprisePerformance);
+            
+            // Update best enterprise on enterprises page
+            this.updateBestEnterpriseSummary(bestEnterprise);
+        } catch (error) {
+            console.error('Error updating enterprise insights:', error);
+        }
     }
     
     updateInsightsGrid(enterprisePerformance) {
@@ -602,7 +906,7 @@ class FarmFlowApp {
         const statsEl = document.getElementById('bestEnterpriseStats');
         const profitEl = document.getElementById('bestEnterpriseProfit');
         
-        if (!bestEnterprise) {
+        if (!bestEnterprise || !bestEnterprise.name) {
             nameEl.textContent = 'No data';
             statsEl.textContent = 'Add transactions to see performance';
             profitEl.innerHTML = '<span>KES 0</span><small>Net Profit</small>';
@@ -620,162 +924,377 @@ class FarmFlowApp {
         iconEl.style.backgroundColor = `${bestEnterprise.color}20`;
     }
     
+    async loadTransactions() {
+        const container = document.getElementById('allTransactions');
+        if (!container) return;
+        
+        try {
+            const transactions = await window.database.getTransactions();
+            
+            if (transactions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-icons">receipt</span>
+                        <p data-i18n="noTransactions">No transactions yet</p>
+                        <button class="btn primary" id="addFirstTrans">Add your first transaction</button>
+                    </div>
+                `;
+                document.getElementById('addFirstTrans')?.addEventListener('click', () => this.showTransactionModal());
+                this.translatePage();
+                return;
+            }
+            
+            container.innerHTML = transactions.map(trans => `
+                <div class="transaction-item" data-id="${trans.id}">
+                    <div class="transaction-info">
+                        <div class="transaction-category">${trans.category}</div>
+                        <div class="transaction-meta">
+                            <span>${trans.enterprise}</span>
+                            <span>${new Date(trans.date).toLocaleDateString()}</span>
+                            ${trans.note ? `<span class="transaction-note">${trans.note}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="transaction-actions">
+                        <div class="transaction-amount ${trans.type}">
+                            ${trans.type === 'income' ? '+' : '-'} KES ${trans.amount.toLocaleString()}
+                        </div>
+                        <button class="icon-btn small edit-transaction" data-id="${trans.id}">
+                            <span class="material-icons">edit</span>
+                        </button>
+                        <button class="icon-btn small delete-transaction" data-id="${trans.id}">
+                            <span class="material-icons">delete</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add event listeners for edit and delete buttons
+            document.querySelectorAll('.edit-transaction').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    this.editTransaction(parseInt(id));
+                });
+            });
+            
+            document.querySelectorAll('.delete-transaction').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    this.deleteTransaction(parseInt(id));
+                });
+            });
+        } catch (error) {
+            console.error('Error loading transactions:', error);
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="material-icons">error</span>
+                    <p>Error loading transactions</p>
+                </div>
+            `;
+        }
+    }
+    
     async loadEnterprises() {
         const container = document.getElementById('enterprisesList');
         if (!container) return;
         
-        // Get current month transactions for enterprise stats
-        const transactions = await window.database.getTransactions();
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-        
-        const monthTransactions = transactions.filter(t => {
-            const transDate = new Date(t.date);
-            return transDate.getMonth() === currentMonth && 
-                   transDate.getFullYear() === currentYear;
-        });
-        
-        // Calculate enterprise stats
-        const enterpriseStats = {};
-        this.enterprises.forEach(ent => {
-            enterpriseStats[ent.name] = { income: 0, expense: 0, net: 0 };
-        });
-        
-        monthTransactions.forEach(t => {
-            if (enterpriseStats[t.enterprise]) {
-                if (t.type === 'income') {
-                    enterpriseStats[t.enterprise].income += t.amount;
-                } else {
-                    enterpriseStats[t.enterprise].expense += t.amount;
-                }
-            }
-        });
-        
-        // Calculate net profit
-        Object.keys(enterpriseStats).forEach(name => {
-            const stats = enterpriseStats[name];
-            stats.net = stats.income - stats.expense;
-        });
-        
-        if (this.enterprises.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <span class="material-icons">business</span>
-                    <p>No enterprises yet</p>
-                    <p class="empty-state-sub">Add your farm enterprises to start tracking</p>
-                    <button class="btn primary" id="addFirstEnterprise">Add your first enterprise</button>
-                </div>
-            `;
-            document.getElementById('addFirstEnterprise')?.addEventListener('click', () => this.showEnterpriseModal());
-            return;
-        }
-        
-        container.innerHTML = this.enterprises.map(ent => {
-            const stats = enterpriseStats[ent.name] || { income: 0, expense: 0, net: 0 };
-            const profitMargin = stats.income > 0 ? ((stats.net / stats.income) * 100).toFixed(1) : 0;
+        try {
+            // Get current month transactions for enterprise stats
+            const transactions = await window.database.getTransactions();
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
             
-            return `
-                <div class="enterprise-card enterprise-${ent.type}" data-id="${ent.id}">
-                    <div class="enterprise-icon" style="background-color: ${ent.color}20; color: ${ent.color};">
-                        <span class="material-icons">${this.getEnterpriseIcon(ent.type)}</span>
+            const monthTransactions = transactions.filter(t => {
+                const transDate = new Date(t.date);
+                return transDate.getMonth() === currentMonth && 
+                       transDate.getFullYear() === currentYear;
+            });
+            
+            // Calculate enterprise stats
+            const enterpriseStats = {};
+            this.enterprises.forEach(ent => {
+                enterpriseStats[ent.name] = { income: 0, expense: 0, net: 0 };
+            });
+            
+            monthTransactions.forEach(t => {
+                if (enterpriseStats[t.enterprise]) {
+                    if (t.type === 'income') {
+                        enterpriseStats[t.enterprise].income += t.amount;
+                    } else {
+                        enterpriseStats[t.enterprise].expense += t.amount;
+                    }
+                }
+            });
+            
+            // Calculate net profit
+            Object.keys(enterpriseStats).forEach(name => {
+                const stats = enterpriseStats[name];
+                stats.net = stats.income - stats.expense;
+            });
+            
+            if (this.enterprises.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-icons">business</span>
+                        <p>No enterprises yet</p>
+                        <p class="empty-state-sub">Add your farm enterprises to start tracking</p>
+                        <button class="btn primary" id="addFirstEnterprise">Add your first enterprise</button>
                     </div>
-                    <h3>${ent.name}</h3>
-                    <p>${ent.type.charAt(0).toUpperCase() + ent.type.slice(1)} enterprise</p>
-                    <div class="enterprise-stats">
-                        <div class="stat">
-                            <span class="stat-label">Income</span>
-                            <span class="stat-value">KES ${stats.income.toLocaleString()}</span>
+                `;
+                document.getElementById('addFirstEnterprise')?.addEventListener('click', () => this.showEnterpriseModal());
+                return;
+            }
+            
+            container.innerHTML = this.enterprises.map(ent => {
+                const stats = enterpriseStats[ent.name] || { income: 0, expense: 0, net: 0 };
+                const profitMargin = stats.income > 0 ? ((stats.net / stats.income) * 100).toFixed(1) : 0;
+                
+                return `
+                    <div class="enterprise-card enterprise-${ent.type}" data-id="${ent.id}">
+                        <div class="enterprise-icon" style="background-color: ${ent.color}20; color: ${ent.color};">
+                            <span class="material-icons">${this.getEnterpriseIcon(ent.type)}</span>
                         </div>
-                        <div class="stat">
-                            <span class="stat-label">Expenses</span>
-                            <span class="stat-value">KES ${stats.expense.toLocaleString()}</span>
+                        <h3>${ent.name}</h3>
+                        <p>${ent.type.charAt(0).toUpperCase() + ent.type.slice(1)} enterprise</p>
+                        <div class="enterprise-stats">
+                            <div class="stat">
+                                <span class="stat-label">Income</span>
+                                <span class="stat-value">KES ${stats.income.toLocaleString()}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Expenses</span>
+                                <span class="stat-value">KES ${stats.expense.toLocaleString()}</span>
+                            </div>
+                        </div>
+                        <div class="enterprise-profit">
+                            <span class="profit-label">Net Profit</span>
+                            <span class="profit-value ${stats.net >= 0 ? 'positive' : 'negative'}">
+                                ${stats.net >= 0 ? '+' : ''}KES ${stats.net.toLocaleString()}
+                            </span>
+                            <span class="profit-margin ${stats.net >= 0 ? 'positive' : 'negative'}">
+                                ${profitMargin >= 0 ? '+' : ''}${profitMargin}%
+                            </span>
                         </div>
                     </div>
-                    <div class="enterprise-profit">
-                        <span class="profit-label">Net Profit</span>
-                        <span class="profit-value ${stats.net >= 0 ? 'positive' : 'negative'}">
-                            ${stats.net >= 0 ? '+' : ''}KES ${stats.net.toLocaleString()}
-                        </span>
-                        <span class="profit-margin ${stats.net >= 0 ? 'positive' : 'negative'}">
-                            ${profitMargin >= 0 ? '+' : ''}${profitMargin}%
-                        </span>
-                    </div>
-                </div>
-            `;
-        }).join('');
+                `;
+            }).join('');
+            
+            // Make enterprise cards clickable
+            document.querySelectorAll('.enterprise-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    this.viewEnterprise(parseInt(id));
+                });
+            });
+            
+            // Update best enterprise summary
+            this.updateEnterpriseInsights();
+        } catch (error) {
+            console.error('Error loading enterprises:', error);
+        }
+    }
+    
+    getEnterpriseIcon(type) {
+        const icons = {
+            dairy: 'agriculture',
+            poultry: 'egg',
+            crops: 'grass',
+            livestock: 'pets',
+            fisheries: 'water',
+            apiary: 'hive',
+            other: 'business'
+        };
+        return icons[type] || 'business';
+    }
+    
+    showTransactionModal() {
+        document.getElementById('transactionModal').classList.add('active');
+        document.getElementById('transDate').valueAsDate = new Date();
+        this.updateTransactionCategories();
         
-        // Make enterprise cards clickable
-        document.querySelectorAll('.enterprise-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                const id = e.currentTarget.getAttribute('data-id');
-                this.viewEnterprise(parseInt(id));
+        // Set default currency
+        if (document.getElementById('transCurrency')) {
+            document.getElementById('transCurrency').value = this.userSettings.currency;
+        }
+    }
+    
+    hideTransactionModal() {
+        document.getElementById('transactionModal').classList.remove('active');
+        document.getElementById('transactionForm').reset();
+    }
+    
+    async saveTransaction(e) {
+        e.preventDefault();
+        
+        const form = e.target;
+        const type = document.querySelector('.type-btn.active')?.getAttribute('data-type');
+        if (!type) return;
+        
+        const transaction = {
+            date: form.transDate.value,
+            type: type,
+            enterprise: form.transEnterprise.value,
+            category: form.transCategory.value,
+            amount: parseFloat(form.transAmount.value) || 0,
+            currency: form.transCurrency?.value || 'KES',
+            note: form.transNote.value,
+            synced: this.isOnline,
+            createdAt: new Date().toISOString()
+        };
+        
+        try {
+            await window.database.addTransaction(transaction);
+            this.hideTransactionModal();
+            this.showToast('Transaction saved successfully!', 'check_circle');
+            
+            // Update UI
+            this.updateDashboard();
+            if (this.currentPage === 'transactions') {
+                this.loadTransactions();
+            }
+            
+            // Update enterprise stats
+            if (this.currentPage === 'enterprises') {
+                this.loadEnterprises();
+            }
+            
+        } catch (error) {
+            console.error('Error saving transaction:', error);
+            this.showToast('Error saving transaction', 'error');
+        }
+    }
+    
+    async editTransaction(id) {
+        // Implementation for edit transaction
+        this.showToast('Edit feature coming soon!', 'edit');
+    }
+    
+    async deleteTransaction(id) {
+        if (confirm('Are you sure you want to delete this transaction?')) {
+            try {
+                await window.database.deleteTransaction(id);
+                this.showToast('Transaction deleted', 'delete');
+                
+                // Update UI
+                this.updateDashboard();
+                if (this.currentPage === 'transactions') {
+                    this.loadTransactions();
+                }
+            } catch (error) {
+                console.error('Error deleting transaction:', error);
+                this.showToast('Error deleting transaction', 'error');
+            }
+        }
+    }
+    
+    showEnterpriseModal() {
+        document.getElementById('enterpriseModal').classList.add('active');
+        
+        // Set up color picker
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+                e.currentTarget.classList.add('selected');
+                document.getElementById('enterpriseColor').value = e.currentTarget.getAttribute('data-color');
             });
         });
         
-        // Update best enterprise summary
-        this.updateEnterpriseInsights();
-    }
-    
-    toggleTheme(isDark) {
-        const newTheme = isDark ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        this.userSettings.theme = newTheme;
-        this.saveUserSettings();
-        
-        // Update theme toggle UI
-        const themeIcon = document.querySelector('#themeIcon');
-        if (themeIcon) {
-            themeIcon.textContent = newTheme === 'dark' ? 'light_mode' : 'dark_mode';
-        }
-        
-        // Update header theme toggle
-        const headerThemeIcon = document.querySelector('.theme-icon');
-        if (headerThemeIcon) {
-            headerThemeIcon.textContent = newTheme === 'dark' ? 'light_mode' : 'dark_mode';
+        // Select first color by default
+        const firstColor = document.querySelector('.color-option');
+        if (firstColor) {
+            firstColor.classList.add('selected');
+            document.getElementById('enterpriseColor').value = firstColor.getAttribute('data-color');
         }
     }
     
-    setLanguage(lang) {
-        this.currentLanguage = lang;
-        this.userSettings.language = lang;
-        this.saveUserSettings();
+    async saveEnterprise(e) {
+        if (e) e.preventDefault();
         
-        // Update UI
-        document.querySelectorAll('.lang-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('data-lang') === lang) {
-                btn.classList.add('active');
+        const form = document.getElementById('enterpriseForm');
+        const enterprise = {
+            name: form.enterpriseName.value,
+            type: form.enterpriseType.value,
+            color: form.enterpriseColor.value,
+            description: form.enterpriseDescription.value,
+            createdAt: new Date().toISOString()
+        };
+        
+        try {
+            await window.database.addEnterprise(enterprise);
+            this.hideEnterpriseModal();
+            this.showToast('Enterprise saved successfully!', 'check_circle');
+            
+            // Refresh enterprises list
+            this.enterprises = await window.database.getEnterprises();
+            this.updateEnterpriseDropdowns();
+            if (this.currentPage === 'enterprises') {
+                this.loadEnterprises();
             }
-        });
-        
-        // Translate the entire page
-        this.translatePage();
+            
+        } catch (error) {
+            console.error('Error saving enterprise:', error);
+            this.showToast('Error saving enterprise', 'error');
+        }
     }
     
-    translatePage() {
-        const translations = this.translations[this.currentLanguage];
+    hideEnterpriseModal() {
+        document.getElementById('enterpriseModal').classList.remove('active');
+        document.getElementById('enterpriseForm').reset();
+    }
+    
+    viewEnterprise(id) {
+        this.showToast(`Viewing enterprise details - Coming soon!`, 'business');
+    }
+    
+    showReport(reportType) {
+        // For now, show a toast for reports
+        this.showToast(`${reportType} report - Coming soon!`, 'bar_chart');
+    }
+    
+    showBudgetModal() {
+        this.showToast('Budget feature coming soon!', 'savings');
+    }
+    
+    showInvoiceModal() {
+        this.showToast('Invoice feature coming soon!', 'description');
+    }
+    
+    showAssetModal() {
+        this.showToast('Asset register feature coming soon!', 'agriculture');
+    }
+    
+    showLoanModal() {
+        this.showToast('Loan tracking feature coming soon!', 'account_balance');
+    }
+    
+    handleQuickAction(action) {
+        this.showTransactionModal();
         
-        // Translate all elements with data-i18n attribute
-        document.querySelectorAll('[data-i18n]').forEach(element => {
-            const key = element.getAttribute('data-i18n');
-            if (translations[key]) {
-                element.textContent = translations[key];
-            }
-        });
-        
-        // Translate placeholders
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-            const key = element.getAttribute('data-i18n-placeholder');
-            if (translations[key]) {
-                element.setAttribute('placeholder', translations[key]);
-            }
-        });
-        
-        // Update sync status text
-        const syncText = document.getElementById('syncText');
-        if (syncText && translations.online) {
-            syncText.textContent = this.isOnline ? translations.online : 'Offline';
+        switch(action) {
+            case 'sell-produce':
+                document.querySelectorAll('.type-btn')[0]?.click();
+                if (document.getElementById('transCategory')) {
+                    document.getElementById('transCategory').value = 'Crop Sales';
+                }
+                break;
+            case 'buy-feed':
+                document.querySelectorAll('.type-btn')[1]?.click();
+                if (document.getElementById('transCategory')) {
+                    document.getElementById('transCategory').value = 'Animal Feed';
+                }
+                break;
+            case 'record-payment':
+                document.querySelectorAll('.type-btn')[0]?.click();
+                if (document.getElementById('transCategory')) {
+                    document.getElementById('transCategory').value = 'Other Income';
+                }
+                break;
+            case 'pay-wages':
+                document.querySelectorAll('.type-btn')[1]?.click();
+                if (document.getElementById('transCategory')) {
+                    document.getElementById('transCategory').value = 'Labor';
+                }
+                break;
         }
     }
     
@@ -784,12 +1303,24 @@ class FarmFlowApp {
         this.loadAvatarOptions();
         
         // Load other settings
-        document.getElementById('userNameInput').value = this.userSettings.name;
-        document.getElementById('defaultCurrency').value = this.userSettings.currency;
-        document.getElementById('autoSync').checked = this.userSettings.autoSync;
-        document.getElementById('notifications').checked = this.userSettings.notifications;
-        document.getElementById('reduceMotion').checked = this.userSettings.reduceMotion;
-        document.getElementById('darkModeToggle').checked = this.userSettings.theme === 'dark';
+        if (document.getElementById('userNameInput')) {
+            document.getElementById('userNameInput').value = this.userSettings.name;
+        }
+        if (document.getElementById('defaultCurrency')) {
+            document.getElementById('defaultCurrency').value = this.userSettings.currency;
+        }
+        if (document.getElementById('autoSync')) {
+            document.getElementById('autoSync').checked = this.userSettings.autoSync;
+        }
+        if (document.getElementById('notifications')) {
+            document.getElementById('notifications').checked = this.userSettings.notifications;
+        }
+        if (document.getElementById('reduceMotion')) {
+            document.getElementById('reduceMotion').checked = this.userSettings.reduceMotion;
+        }
+        if (document.getElementById('darkModeToggle')) {
+            document.getElementById('darkModeToggle').checked = this.userSettings.theme === 'dark';
+        }
         
         // Update theme icon
         const themeIcon = document.querySelector('#themeIcon');
@@ -870,86 +1401,49 @@ class FarmFlowApp {
         }
     }
     
-    showBudgetModal() {
-        this.showToast('Budget feature coming soon!', 'savings');
-    }
-    
-    showInvoiceModal() {
-        this.showToast('Invoice feature coming soon!', 'description');
-    }
-    
-    showAssetModal() {
-        this.showToast('Asset register feature coming soon!', 'agriculture');
-    }
-    
-    showLoanModal() {
-        this.showToast('Loan tracking feature coming soon!', 'account_balance');
-    }
-    
-    // Enhanced ROI Calculator
-    showROICalculator() {
-        document.getElementById('roiModal').classList.add('active');
-        this.calculateROI(); // Initial calculation
-    }
-    
-    calculateROI() {
-        const investment = parseFloat(document.getElementById('roiInvestment').value) || 0;
-        const revenue = parseFloat(document.getElementById('roiRevenue').value) || 0;
-        const costs = parseFloat(document.getElementById('roiCosts').value) || 0;
-        const years = parseFloat(document.getElementById('roiYears').value) || 1;
-        
-        // Calculate metrics
-        const annualNetProfit = revenue - costs;
-        const totalNetProfit = annualNetProfit * years;
-        const roiPercentage = investment > 0 ? (totalNetProfit / investment * 100).toFixed(1) : 0;
-        const paybackPeriod = annualNetProfit > 0 ? (investment / annualNetProfit).toFixed(2) : '∞';
-        const totalReturn = investment + totalNetProfit;
-        const annualizedReturn = investment > 0 ? 
-            (Math.pow(1 + totalNetProfit/investment, 1/years) - 1) * 100 : 0;
-        
-        // Update UI
-        document.getElementById('roiNetProfit').textContent = `KES ${annualNetProfit.toLocaleString()}`;
-        document.getElementById('roiPercentage').textContent = `${roiPercentage}%`;
-        document.getElementById('roiPayback').textContent = `${paybackPeriod} years`;
-        document.getElementById('roiTotalReturn').textContent = `KES ${totalReturn.toLocaleString()}`;
-        document.getElementById('roiAnnualized').textContent = `${annualizedReturn.toFixed(1)}%`;
-        
-        // Update ROI percentage color
-        const roiEl = document.getElementById('roiPercentage');
-        roiEl.className = `roi-percentage ${parseFloat(roiPercentage) >= 0 ? 'positive' : 'negative'}`;
-        
-        // Update chart
-        this.updateROIChart(investment, totalNetProfit, costs * years);
-    }
-    
-    updateROIChart(investment, totalProfit, totalCosts) {
-        const ctx = document.getElementById('roiChart');
+    updateIncomeChart(transactions) {
+        const ctx = document.getElementById('incomeChart');
         if (!ctx) return;
         
         const ctx2d = ctx.getContext('2d');
-        const totalReturn = investment + totalProfit;
+        const last6Months = Array.from({length: 6}, (_, i) => {
+            const date = new Date();
+            date.setMonth(date.getMonth() - i);
+            return {
+                month: date.toLocaleString('default', { month: 'short' }),
+                year: date.getFullYear(),
+                monthIndex: date.getMonth()
+            };
+        }).reverse();
         
-        if (this.roiChart) {
-            this.roiChart.destroy();
+        const incomeByMonth = last6Months.map(({monthIndex, year}) => {
+            const monthIncome = transactions
+                .filter(t => t.type === 'income')
+                .filter(t => {
+                    const transDate = new Date(t.date);
+                    return transDate.getMonth() === monthIndex &&
+                           transDate.getFullYear() === year;
+                })
+                .reduce((sum, t) => sum + t.amount, 0);
+            return monthIncome;
+        });
+        
+        if (this.incomeChart) {
+            this.incomeChart.destroy();
         }
         
-        this.roiChart = new Chart(ctx2d, {
-            type: 'doughnut',
+        this.incomeChart = new Chart(ctx2d, {
+            type: 'line',
             data: {
-                labels: ['Investment', 'Profit', 'Costs'],
+                labels: last6Months.map(m => m.month),
                 datasets: [{
-                    data: [investment, totalProfit, totalCosts],
-                    backgroundColor: [
-                        'rgba(54, 162, 235, 0.8)',
-                        'rgba(75, 192, 192, 0.8)',
-                        'rgba(255, 99, 132, 0.8)'
-                    ],
-                    borderColor: [
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(255, 99, 132, 1)'
-                    ],
-                    borderWidth: 1
+                    label: 'Income',
+                    data: incomeByMonth,
+                    borderColor: '#2E7D32',
+                    backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 2
                 }]
             },
             options: {
@@ -957,26 +1451,196 @@ class FarmFlowApp {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return 'KES ' + value.toLocaleString();
+                            }
                         }
                     },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
-                                return `${label}: KES ${value.toLocaleString()} (${percentage}%)`;
-                            }
+                    x: {
+                        grid: {
+                            display: false
                         }
                     }
                 }
             }
         });
+    }
+    
+    updateRecentTransactions(transactions) {
+        const container = document.getElementById('recentTransactions');
+        const recent = transactions
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 5);
+        
+        if (recent.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="material-icons">receipt</span>
+                    <p data-i18n="noTransactions">No transactions yet</p>
+                    <button class="btn primary" id="addFirstTransaction">Add your first transaction</button>
+                </div>
+            `;
+            document.getElementById('addFirstTransaction').addEventListener('click', () => this.showTransactionModal());
+            this.translatePage();
+            return;
+        }
+        
+        container.innerHTML = recent.map(trans => `
+            <div class="transaction-item">
+                <div class="transaction-info">
+                    <div class="transaction-category">${trans.category}</div>
+                    <div class="transaction-meta">
+                        <span>${trans.enterprise}</span>
+                        <span>${new Date(trans.date).toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <div class="transaction-amount ${trans.type}">
+                    ${trans.type === 'income' ? '+' : '-'} KES ${trans.amount.toLocaleString()}
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    loadBudgets() {
+        const container = document.getElementById('budgetsList');
+        if (container) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="material-icons">savings</span>
+                    <p>No budgets set up yet</p>
+                    <p class="empty-state-sub">Set budgets for your enterprises to track spending</p>
+                    <button class="btn primary" id="setupBudget">Set up your first budget</button>
+                </div>
+            `;
+            document.getElementById('setupBudget').addEventListener('click', () => this.showBudgetModal());
+        }
+    }
+    
+    loadInvoices() {
+        const container = document.getElementById('invoicesList');
+        if (container) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="material-icons">description</span>
+                    <p>No invoices created yet</p>
+                    <p class="empty-state-sub">Create professional invoices for your sales</p>
+                    <button class="btn primary" id="createFirstInvoice">Create your first invoice</button>
+                </div>
+            `;
+            document.getElementById('createFirstInvoice').addEventListener('click', () => this.showInvoiceModal());
+        }
+    }
+    
+    loadAssets() {
+        const container = document.getElementById('assetsList');
+        if (container) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="material-icons">agriculture</span>
+                    <p>No assets registered yet</p>
+                    <p class="empty-state-sub">Track your farm assets and their depreciation</p>
+                    <button class="btn primary" id="addFirstAsset">Register your first asset</button>
+                </div>
+            `;
+            document.getElementById('addFirstAsset').addEventListener('click', () => this.showAssetModal());
+        }
+    }
+    
+    loadLoans() {
+        const container = document.getElementById('loansList');
+        if (container) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="material-icons">account_balance</span>
+                    <p>No loans tracked yet</p>
+                    <p class="empty-state-sub">Track your loans and repayment schedules</p>
+                    <button class="btn primary" id="addFirstLoan">Add your first loan</button>
+                </div>
+            `;
+            document.getElementById('addFirstLoan').addEventListener('click', () => this.showLoanModal());
+        }
+    }
+    
+    loadBackupPage() {
+        // Already implemented in HTML
+    }
+    
+    loadHelpPage() {
+        // Add contact details
+        const helpContainer = document.querySelector('.help-container');
+        if (helpContainer && !document.getElementById('contactDetails')) {
+            const contactSection = document.createElement('div');
+            contactSection.className = 'contact-section';
+            contactSection.id = 'contactDetails';
+            contactSection.innerHTML = `
+                <h3>Contact & Support</h3>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <span class="material-icons">phone</span>
+                        <div>
+                            <h4>Phone/WhatsApp</h4>
+                            <p>0732364559 (Kevin)</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="material-icons">email</span>
+                        <div>
+                            <h4>Email</h4>
+                            <p>support@farmflow.app</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="material-icons">schedule</span>
+                        <div>
+                            <h4>Support Hours</h4>
+                            <p>Monday - Friday: 8 AM - 5 PM EAT</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            helpContainer.appendChild(contactSection);
+        }
+    }
+    
+    setupLanguage() {
+        // Load saved language or use browser default
+        const browserLang = navigator.language.split('-')[0];
+        const savedLang = this.userSettings.language;
+        
+        if (savedLang) {
+            this.setLanguage(savedLang);
+        } else if (browserLang === 'sw') {
+            this.setLanguage('sw');
+        } else {
+            this.setLanguage('en');
+        }
+    }
+    
+    setupTheme() {
+        // Apply saved theme
+        document.documentElement.setAttribute('data-theme', this.userSettings.theme);
+        
+        // Update icons
+        const themeIcon = document.querySelector('.theme-icon');
+        if (themeIcon) {
+            themeIcon.textContent = this.userSettings.theme === 'dark' ? 'light_mode' : 'dark_mode';
+        }
+        
+        // Update toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        if (darkModeToggle) {
+            darkModeToggle.checked = this.userSettings.theme === 'dark';
+        }
     }
     
     loadUserSettings() {
@@ -998,10 +1662,60 @@ class FarmFlowApp {
         localStorage.setItem('farmflow-settings', JSON.stringify(this.userSettings));
     }
     
-    // Other methods remain similar but updated for new features...
+    setupServiceWorker() {
+        // Already registered in HTML
+    }
+    
+    setupInstallPrompt() {
+        // Implementation for install prompt
+    }
+    
+    showInstallPrompt() {
+        // Show custom install prompt
+        if (this.deferredPrompt) {
+            this.showToast('Install FarmFlow for quick access!', 'download');
+        }
+    }
+    
+    showToast(message, icon = 'info') {
+        const toast = document.getElementById('syncToast');
+        const iconElement = document.getElementById('syncToastIcon');
+        const messageElement = document.getElementById('syncToastMessage');
+        
+        if (!toast || !iconElement || !messageElement) return;
+        
+        iconElement.textContent = icon;
+        messageElement.textContent = message;
+        
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
 }
 
-// Initialize the app
+// Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new FarmFlowApp();
+    
+    // Set up enterprise form submission
+    document.getElementById('enterpriseForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        window.app.saveEnterprise(e);
+    });
+    
+    // Set up enterprise modal close buttons
+    document.getElementById('closeEnterpriseModal')?.addEventListener('click', () => {
+        window.app.hideEnterpriseModal();
+    });
+    
+    document.getElementById('cancelEnterprise')?.addEventListener('click', () => {
+        window.app.hideEnterpriseModal();
+    });
+    
+    // Set up encryption checkbox
+    document.getElementById('encryptBackup')?.addEventListener('change', (e) => {
+        document.getElementById('backupPassword').disabled = !e.target.checked;
+    });
 });
