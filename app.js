@@ -218,6 +218,9 @@ class FarmFlowApp {
         this.setupServiceWorker();
         this.setupInstallPrompt();
         this.setupDrawerOverlay();
+
+        //Initialize all pages
+        this.initializeAllPages();
         
         // Initialize sync manager
         if (window.syncManager) {
@@ -227,8 +230,14 @@ class FarmFlowApp {
     
     setupEventListeners() {
         // Navigation
-        document.getElementById('menuBtn').addEventListener('click', () => this.toggleDrawer(true));
-        document.getElementById('closeDrawer').addEventListener('click', () => this.toggleDrawer(false));
+        document.querySelectorAll('.nav-item').forEach(item=>{
+            item.addEventListener('click',(e)=>{
+                e.preventDefault();
+                const page = item.getAttribute('data-page');
+                this.navigateTo(page);
+                this.toggleDrawer(false);
+            });
+        });
         
         // Search functionality - FIXED
         document.getElementById('searchBtn').addEventListener('click', () => this.showSearch());
@@ -282,15 +291,15 @@ class FarmFlowApp {
         document.getElementById('fab').addEventListener('click', () => this.showTransactionModal());
         
         // Transaction page buttons - FIXED
-        document.getElementById('addTransaction')?.addEventListener('click', () => this.showTransactionModal());
-        document.getElementById('addFirstTransaction')?.addEventListener('click', () => this.showTransactionModal());
+        document.getElementById('addTransaction').addEventListener('click', () => this.showTransactionModal());
+        document.getElementById('addFirstTransaction').addEventListener('click', () => this.showTransactionModal());
         
         // Insights period change
-        document.getElementById('insightsPeriod')?.addEventListener('change', () => this.updateEnterpriseInsights());
-        document.getElementById('chartPeriod')?.addEventListener('change', () => this.updateDashboard());
+        document.getElementById('insightsPeriod').addEventListener('change', () => this.updateEnterpriseInsights());
+        document.getElementById('chartPeriod').addEventListener('change', () => this.updateDashboard());
         
         // Enterprise page - FIXED
-        document.getElementById('addEnterpriseBtn')?.addEventListener('click', () => this.showEnterpriseModal());
+        document.getElementById('addEnterpriseBtn').addEventListener('click', () => this.showEnterpriseModal());
         
         // Reports page - FIXED
         document.querySelectorAll('[data-report]').forEach(btn => {
@@ -301,15 +310,15 @@ class FarmFlowApp {
         });
         
         // Add buttons for different pages - FIXED
-        document.getElementById('addBudgetBtn')?.addEventListener('click', () => this.showBudgetModal());
-        document.getElementById('addInvoiceBtn')?.addEventListener('click', () => this.showInvoiceModal());
-        document.getElementById('addAssetBtn')?.addEventListener('click', () => this.showAssetModal());
-        document.getElementById('addLoanBtn')?.addEventListener('click', () => this.showLoanModal());
+        document.getElementById('addBudgetBtn').addEventListener('click', () => this.showBudgetModal());
+        document.getElementById('addInvoiceBtn').addEventListener('click', () => this.showInvoiceModal());
+        document.getElementById('addAssetBtn').addEventListener('click', () => this.showAssetModal());
+        document.getElementById('addLoanBtn').addEventListener('click', () => this.showLoanModal());
         
         // Transaction form - FIXED
-        document.getElementById('transactionForm')?.addEventListener('submit', (e) => this.saveTransaction(e));
-        document.getElementById('closeTransactionModal')?.addEventListener('click', () => this.hideTransactionModal());
-        document.getElementById('cancelTransaction')?.addEventListener('click', () => this.hideTransactionModal());
+        document.getElementById('transactionForm').addEventListener('submit', (e) => this.saveTransaction(e));
+        document.getElementById('closeTransactionModal').addEventListener('click', () => this.hideTransactionModal());
+        document.getElementById('cancelTransaction').addEventListener('click', () => this.hideTransactionModal());
         
         // Transaction type toggle
         document.querySelectorAll('.type-btn').forEach(btn => {
@@ -321,11 +330,11 @@ class FarmFlowApp {
         });
         
         // Settings
-        document.getElementById('userNameInput')?.addEventListener('change', (e) => this.updateUserName(e.target.value));
-        document.getElementById('defaultCurrency')?.addEventListener('change', (e) => this.updateCurrency(e.target.value));
-        document.getElementById('autoSync')?.addEventListener('change', (e) => this.updateAutoSync(e.target.checked));
-        document.getElementById('notifications')?.addEventListener('change', (e) => this.updateNotifications(e.target.checked));
-        document.getElementById('reduceMotion')?.addEventListener('change', (e) => this.updateReduceMotion(e.target.checked));
+        document.getElementById('userNameInput').addEventListener('change', (e) => this.updateUserName(e.target.value));
+        document.getElementById('defaultCurrency').addEventListener('change', (e) => this.updateCurrency(e.target.value));
+        document.getElementById('autoSync').addEventListener('change', (e) => this.updateAutoSync(e.target.checked));
+        document.getElementById('notifications').addEventListener('change', (e) => this.updateNotifications(e.target.checked));
+        document.getElementById('reduceMotion').addEventListener('change', (e) => this.updateReduceMotion(e.target.checked));
         
         // Online/offline events
         window.addEventListener('online', () => this.handleOnline());
@@ -373,49 +382,67 @@ class FarmFlowApp {
         });
         
         // Update active page
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         const pageElement = document.getElementById(`${page}Page`);
         if (pageElement) {
             pageElement.classList.add('active');
             this.currentPage = page;
-            
-            // Load page-specific data
-            switch(page) {
-                case 'dashboard':
-                    this.updateDashboard();
-                    break;
-                case 'transactions':
-                    this.loadTransactions();
-                    break;
-                case 'enterprises':
-                    this.loadEnterprises();
-                    break;
-                case 'reports':
-                    // Reports are loaded on button click
-                    break;
-                case 'budgets':
-                    this.loadBudgets();
-                    break;
-                case 'invoices':
-                    this.loadInvoices();
-                    break;
-                case 'assets':
-                    this.loadAssets();
-                    break;
-                case 'loans':
-                    this.loadLoans();
-                    break;
-                case 'backup':
-                    this.loadBackupPage();
-                    break;
-                case 'settings':
-                    this.loadSettings();
-                    break;
-                case 'help':
-                    this.loadHelpPage();
-                    break;
-            }
+
+            //Load page-specific data
+            this.loadPageData(page);
+        }else{
+            console.error('Page not found:',page);
         }
+    }
+            
+        // Load page-specific data
+    loadPageData(page){   
+        switch(page) {
+            case 'dashboard':
+                this.updateDashboard();
+                break;
+            case 'transactions':
+                this.loadTransactions();
+                break;
+            case 'enterprises':
+                this.loadEnterprises();
+                break;
+            case 'reports':
+                // Reports are loaded on button click
+                break;
+            case 'budgets':
+                this.loadBudgets();
+                break;
+            case 'invoices':
+                this.loadInvoices();
+                break;
+            case 'assets':
+                this.loadAssets();
+                break;
+            case 'loans':
+                this.loadLoans();
+                break;
+            case 'backup':
+                this.loadBackupPage();
+                break;
+            case 'settings':
+                this.loadSettings();
+                break;
+            case 'help':
+                this.loadHelpPage();
+                break;
+        
+        }
+    }
+
+    initializeAllPages(){
+        //Initialize all page contents
+        this.loadBudgets();
+        this.loadInvoices();
+        this.loadAssets();
+        this.loadLoans();
+        this.loadBackupPage();
+        this.loadSettings();
+        this.loadHelpPage();
     }
     
     showSearch() {
