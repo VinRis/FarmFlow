@@ -303,6 +303,65 @@
         <section class="page" id="reportsPage">
             <!-- Reports content remains the same -->
         </section>
+
+        <!-- Add this to index.html inside the reports page section -->
+        <section class="page" id="reportsPage">
+            <div class="page-header">
+                <h2 data-i18n="reports">Reports</h2>
+                <div class="page-actions">
+                    <button class="btn secondary" id="exportAllReports">
+                        <span class="material-icons">download</span>
+                        <span data-i18n="exportAll">Export All</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="reports-container">
+                <div class="report-card">
+                    <div class="report-icon">
+                        <span class="material-icons">trending_up</span>
+                    </div>
+                    <h3 data-i18n="profitLoss">Profit & Loss</h3>
+                    <p data-i18n="profitLossDesc">Monthly and annual income vs expenses</p>
+                    <button class="btn outline" data-report="pl">
+                        <span data-i18n="viewReport">View Report</span>
+                    </button>
+                </div>
+                
+                <div class="report-card">
+                    <div class="report-icon">
+                        <span class="material-icons">account_balance_wallet</span>
+                    </div>
+                    <h3 data-i18n="cashFlow">Cash Flow</h3>
+                    <p data-i18n="cashFlowDesc">Track cash inflows and outflows</p>
+                    <button class="btn outline" data-report="cashflow">
+                        <span data-i18n="viewReport">View Report</span>
+                    </button>
+                </div>
+                
+                <div class="report-card">
+                    <div class="report-icon">
+                        <span class="material-icons">calendar_today</span>
+                    </div>
+                    <h3 data-i18n="seasonalComparison">Seasonal Comparison</h3>
+                    <p data-i18n="seasonalDesc">Compare harvest vs non-harvest months</p>
+                    <button class="btn outline" data-report="seasonal">
+                        <span data-i18n="viewReport">View Report</span>
+                    </button>
+                </div>
+                
+                <div class="report-card">
+                    <div class="report-icon">
+                        <span class="material-icons">calculate</span>
+                    </div>
+                    <h3 data-i18n="roiCalculator">ROI Calculator</h3>
+                    <p data-i18n="roiDesc">Return on investment by enterprise</p>
+                    <button class="btn outline" data-report="roi">
+                        <span data-i18n="calculate">Calculate</span>
+                    </button>
+                </div>
+            </div>
+        </section>
         
         <!-- Budgets Page -->
         <section class="page" id="budgetsPage">
