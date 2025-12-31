@@ -1,208 +1,28 @@
-// app.js - Complete update with all enhancements
+// app.js
 class FarmFlowApp {
     constructor() {
         this.currentPage = 'dashboard';
         this.currentLanguage = 'en';
         this.isOnline = navigator.onLine;
-        this.translations = {
-            en: {
-                // Dashboard
-                appName: 'FarmFlow',
-                dashboard: 'Dashboard',
-                monthlyIncome: 'Monthly Income',
-                monthlyExpenses: 'Monthly Expenses',
-                netIncome: 'Net Income',
-                thisMonth: 'This month',
-                enterprisePerformance: 'Enterprise Performance',
-                noInsights: 'No performance data yet',
-                addTransactionsForInsights: 'Add transactions to see enterprise insights',
-                quickActions: 'Quick Actions',
-                viewAll: 'View all',
-                sellProduce: 'Sell Produce',
-                buyFeed: 'Buy Feed',
-                recordPayment: 'Record Payment',
-                payWages: 'Pay Wages',
-                incomeByEnterprise: 'Income by Enterprise',
-                recentTransactions: 'Recent Transactions',
-                noTransactions: 'No transactions yet',
-                addFirstTransaction: 'Add your first transaction',
-                thisMonth: 'This Month',
-                thisQuarter: 'This Quarter',
-                thisYear: 'This Year',
-                
-                // Enterprises
-                enterprises: 'Enterprises',
-                add: 'Add',
-                topPerformer: 'Top Performer This Month',
-                netProfit: 'Net Profit',
-                
-                // Reports
-                reports: 'Reports',
-                roiCalculator: 'ROI Calculator',
-                save: 'Save',
-                initialInvestment: 'Initial Investment (KES)',
-                investmentHelp: 'Total amount invested',
-                annualRevenue: 'Annual Revenue (KES)',
-                revenueHelp: 'Expected yearly income',
-                annualCosts: 'Annual Costs (KES)',
-                costsHelp: 'Yearly operating costs',
-                timePeriod: 'Time Period (Years)',
-                yearsHelp: 'Investment period',
-                calculateROI: 'Calculate ROI',
-                calculationResults: 'Calculation Results',
-                roi: 'ROI',
-                annualNetProfit: 'Annual Net Profit',
-                revenueMinusCosts: 'Revenue - Costs',
-                paybackPeriod: 'Payback Period',
-                timeToRecover: 'Time to recover investment',
-                totalReturn: 'Total Return',
-                overInvestmentPeriod: 'Over investment period',
-                annualizedReturn: 'Annualized Return',
-                averageYearlyReturn: 'Average yearly return',
-                investmentBreakdown: 'Investment Breakdown',
-                
-                // Settings
-                settings: 'Settings',
-                profile: 'Profile',
-                profilePicture: 'Profile Picture',
-                yourName: 'Your Name',
-                general: 'General',
-                defaultCurrency: 'Default Currency',
-                autoSync: 'Auto-sync when online',
-                notifications: 'Notifications',
-                appearance: 'Appearance',
-                darkMode: 'Dark Mode',
-                reduceMotion: 'Reduce motion',
-                dataManagement: 'Data Management',
-                clearCache: 'Clear Cache',
-                resetData: 'Reset All Data',
-                about: 'About',
-                madeByKPF: 'Made with ❤️ by KPF',
-                forFarmers: 'For smallholder farmers worldwide',
-                
-                // Common
-                farmer: 'Farmer',
-                main: 'Main',
-                tools: 'Tools',
-                language: 'Language',
-                english: 'English',
-                kiswahili: 'Kiswahili',
-                online: 'Online',
-                offlineMessage: 'You\'re offline. Changes will sync when you reconnect.'
-            },
-            sw: {
-                // Dashboard
-                appName: 'FarmFlow',
-                dashboard: 'Dashibodi',
-                monthlyIncome: 'Mapato ya Mwezi',
-                monthlyExpenses: 'Matumizi ya Mwezi',
-                netIncome: 'Mapato Safi',
-                thisMonth: 'Mwezi huu',
-                enterprisePerformance: 'Ufanisi wa Biashara',
-                noInsights: 'Hakuna data ya utendaji bado',
-                addTransactionsForInsights: 'Ongeza miamala kuona ufanisi wa biashara',
-                quickActions: 'Vitendo Haraka',
-                viewAll: 'Tazama yote',
-                sellProduce: 'Uza Mazao',
-                buyFeed: 'Nunua Chakula cha Mifugo',
-                recordPayment: 'Andika Malipo',
-                payWages: 'Lipa Mishahara',
-                incomeByEnterprise: 'Mapato kwa Biashara',
-                recentTransactions: 'Miamala ya Hivi Karibuni',
-                noTransactions: 'Hakuna miamala bado',
-                addFirstTransaction: 'Ongeza miamala yako ya kwanza',
-                thisMonth: 'Mwezi Huu',
-                thisQuarter: 'Robo Hii',
-                thisYear: 'Mwaka Huu',
-                
-                // Enterprises
-                enterprises: 'Biashara',
-                add: 'Ongeza',
-                topPerformer: 'Bora zaidi Mwezi Huu',
-                netProfit: 'Faida Safi',
-                
-                // Reports
-                reports: 'Ripoti',
-                roiCalculator: 'Kikokotoo cha ROI',
-                save: 'Hifadhi',
-                initialInvestment: 'Uwekezaji wa Awali (KES)',
-                investmentHelp: 'Jumla ya fedha zilizowekezwa',
-                annualRevenue: 'Mapato ya Mwaka (KES)',
-                revenueHelp: 'Mapato yanayotarajiwa kwa mwaka',
-                annualCosts: 'Gharama za Mwaka (KES)',
-                costsHelp: 'Gharama za uendeshaji kwa mwaka',
-                timePeriod: 'Muda (Miaka)',
-                yearsHelp: 'Muda wa uwekezaji',
-                calculateROI: 'Kokotoa ROI',
-                calculationResults: 'Matokeo ya Hesabu',
-                roi: 'ROI',
-                annualNetProfit: 'Faida ya Mwaka',
-                revenueMinusCosts: 'Mapato - Gharama',
-                paybackPeriod: 'Muda wa Kurudisha',
-                timeToRecover: 'Muda wa kurejesha uwekezaji',
-                totalReturn: 'Mapato ya Jumla',
-                overInvestmentPeriod: 'Katika muda wa uwekezaji',
-                annualizedReturn: 'Mapato ya Mwaka',
-                averageYearlyReturn: 'Wastani wa mapato ya mwaka',
-                investmentBreakdown: 'Mgawanyiko wa Uwekezaji',
-                
-                // Settings
-                settings: 'Mipangilio',
-                profile: 'Wasifu',
-                profilePicture: 'Picha ya Wasifu',
-                yourName: 'Jina Lako',
-                general: 'Mipangilio ya Jumla',
-                defaultCurrency: 'Sarafu Chaguomsingi',
-                autoSync: 'Sanikisha kiotomatiki mtandaoni',
-                notifications: 'Arifa',
-                appearance: 'Mwonekano',
-                darkMode: 'Hali ya Giza',
-                reduceMotion: 'Punguza mwendo',
-                dataManagement: 'Usimamizi wa Data',
-                clearCache: 'Futa Kache',
-                resetData: 'Weka Upya Data Yote',
-                about: 'Kuhusu',
-                madeByKPF: 'Imetengenezwa kwa ❤️ na KPF',
-                forFarmers: 'Kwa wakulima wadogo duniani',
-                
-                // Common
-                farmer: 'Mkulima',
-                main: 'Kuu',
-                tools: 'Zana',
-                language: 'Lugha',
-                english: 'Kiingereza',
-                kiswahili: 'Kiswahili',
-                online: 'Mtandaoni',
-                offlineMessage: 'Haupo mtandaoni. Mabadiliko yatasafirishwa ukirudishwa mtandaoni.'
-            }
-        };
-        
+        this.syncQueue = [];
         this.userSettings = {
             name: 'FarmFlow User',
             currency: 'KES',
             theme: 'light',
-            language: 'en',
-            avatar: 'F',
-            autoSync: true,
-            notifications: true,
-            reduceMotion: false
+            language: 'en'
         };
         
-        this.enterprises = [];
+        this.enterprises = [
+            { id: 1, name: 'Dairy', type: 'dairy', color: '#2196F3', icon: 'agriculture' },
+            { id: 2, name: 'Poultry', type: 'poultry', color: '#FFC107', icon: 'egg' },
+            { id: 3, name: 'Crops', type: 'crops', color: '#4CAF50', icon: 'grass' },
+            { id: 4, name: 'Livestock', type: 'livestock', color: '#795548', icon: 'pets' }
+        ];
+        
         this.categories = {
-            income: [
-                'Crop Sales', 'Livestock Sales', 'Milk Sales', 'Egg Sales', 
-                'Honey Sales', 'Fish Sales', 'Government Support', 'Loan Received',
-                'Investment', 'Other Income'
-            ],
-            expense: [
-                'Seeds', 'Fertilizer', 'Animal Feed', 'Veterinary', 'Labor', 
-                'Transport', 'Equipment', 'Utilities', 'Rent', 'Loan Repayment',
-                'Insurance', 'Market Fees', 'Other Expenses'
-            ]
+            income: ['Crop Sales', 'Livestock Sales', 'Milk Sales', 'Egg Sales', 'Government Support', 'Other Income'],
+            expense: ['Seeds', 'Fertilizer', 'Animal Feed', 'Veterinary', 'Labor', 'Transport', 'Equipment', 'Utilities', 'Other Expenses']
         };
-        
-        this.avatars = ['F', '🌾', '🐄', '🐔', '🌽', '🐟', '🐝', '🚜', '💰', '👨‍🌾', '👩‍🌾'];
         
         this.init();
     }
@@ -213,30 +33,17 @@ class FarmFlowApp {
         this.setupLanguage();
         this.setupTheme();
         this.checkOnlineStatus();
-        await this.setupDatabase();
+        this.setupDatabase();
         await this.loadInitialData();
         this.updateDashboard();
         this.setupServiceWorker();
         this.setupInstallPrompt();
-        this.setupDrawerOverlay();
     }
     
     setupEventListeners() {
         // Navigation
         document.getElementById('menuBtn').addEventListener('click', () => this.toggleDrawer(true));
         document.getElementById('closeDrawer').addEventListener('click', () => this.toggleDrawer(false));
-        
-        // Drawer overlay for closing on outside click
-        document.getElementById('mainContent').addEventListener('click', () => {
-            if (window.innerWidth < 768) {
-                this.toggleDrawer(false);
-            }
-        });
-        
-        // Search functionality
-        document.getElementById('searchBtn').addEventListener('click', () => this.showSearch());
-        document.getElementById('closeSearch').addEventListener('click', () => this.hideSearch());
-        document.getElementById('globalSearch').addEventListener('input', (e) => this.performSearch(e.target.value));
         
         // Page navigation
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -248,10 +55,8 @@ class FarmFlowApp {
             });
         });
         
-        // Modern theme toggle
-        document.getElementById('darkModeToggle').addEventListener('change', (e) => {
-            this.toggleTheme(e.target.checked);
-        });
+        // Theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => this.toggleTheme());
         
         // Language selection
         document.querySelectorAll('.lang-btn').forEach(btn => {
@@ -269,29 +74,27 @@ class FarmFlowApp {
             });
         });
         
-        // View all buttons
-        document.getElementById('viewAllTransactions').addEventListener('click', () => this.navigateTo('transactions'));
-        document.getElementById('viewAllRecentTransactions').addEventListener('click', () => this.navigateTo('transactions'));
-        
         // FAB
         document.getElementById('fab').addEventListener('click', () => this.showTransactionModal());
+        document.getElementById('addTransaction').addEventListener('click', () => this.showTransactionModal());
+        document.getElementById('addFirstTransaction').addEventListener('click', () => this.showTransactionModal());
         
-        // Insights period change
-        document.getElementById('insightsPeriod').addEventListener('change', () => this.updateEnterpriseInsights());
-        document.getElementById('chartPeriod').addEventListener('change', () => this.updateDashboard());
+        // Transaction modal
+        document.getElementById('closeTransactionModal').addEventListener('click', () => this.hideTransactionModal());
+        document.getElementById('cancelTransaction').addEventListener('click', () => this.hideTransactionModal());
+        document.getElementById('transactionForm').addEventListener('submit', (e) => this.saveTransaction(e));
         
-        // Add buttons for different pages
-        document.getElementById('addBudgetBtn')?.addEventListener('click', () => this.showBudgetModal());
-        document.getElementById('addInvoiceBtn')?.addEventListener('click', () => this.showInvoiceModal());
-        document.getElementById('addAssetBtn')?.addEventListener('click', () => this.showAssetModal());
-        document.getElementById('addLoanBtn')?.addEventListener('click', () => this.showLoanModal());
+        // Transaction type toggle
+        document.querySelectorAll('.type-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.updateTransactionCategories();
+            });
+        });
         
-        // Settings
-        document.getElementById('userNameInput').addEventListener('change', (e) => this.updateUserName(e.target.value));
-        document.getElementById('defaultCurrency').addEventListener('change', (e) => this.updateCurrency(e.target.value));
-        document.getElementById('autoSync').addEventListener('change', (e) => this.updateAutoSync(e.target.checked));
-        document.getElementById('notifications').addEventListener('change', (e) => this.updateNotifications(e.target.checked));
-        document.getElementById('reduceMotion').addEventListener('change', (e) => this.updateReduceMotion(e.target.checked));
+        // Sync button
+        document.getElementById('syncBtn').addEventListener('click', () => this.manualSync());
         
         // Online/offline events
         window.addEventListener('online', () => this.handleOnline());
@@ -305,25 +108,12 @@ class FarmFlowApp {
         });
     }
     
-    setupDrawerOverlay() {
-        // Create overlay for closing drawer on outside click
-        const overlay = document.createElement('div');
-        overlay.className = 'drawer-overlay';
-        overlay.id = 'drawerOverlay';
-        overlay.addEventListener('click', () => this.toggleDrawer(false));
-        document.body.appendChild(overlay);
-    }
-    
     toggleDrawer(show) {
         const drawer = document.getElementById('drawer');
-        const overlay = document.getElementById('drawerOverlay');
-        
         if (show) {
             drawer.classList.add('open');
-            overlay.classList.add('active');
         } else {
             drawer.classList.remove('open');
-            overlay.classList.remove('active');
         }
     }
     
@@ -355,385 +145,22 @@ class FarmFlowApp {
                     this.loadEnterprises();
                     break;
                 case 'reports':
-                    // Reports loaded on button click
-                    break;
-                case 'budgets':
-                    this.loadBudgets();
-                    break;
-                case 'invoices':
-                    this.loadInvoices();
-                    break;
-                case 'assets':
-                    this.loadAssets();
-                    break;
-                case 'loans':
-                    this.loadLoans();
-                    break;
-                case 'backup':
-                    // Backup page doesn't need data loading
-                    break;
-                case 'settings':
-                    this.loadSettings();
-                    break;
-                case 'help':
-                    // Help page is static
+                    this.loadReports();
                     break;
             }
         }
     }
     
-    async updateDashboard() {
-        if (!window.database) return;
-        
-        // Calculate KPIs
-        const transactions = await window.database.getTransactions();
-        await this.updateKPIs(transactions);
-        
-        // Update enterprise insights
-        await this.updateEnterpriseInsights();
-        
-        // Update chart
-        this.updateIncomeChart(transactions);
-        
-        // Update recent transactions
-        this.updateRecentTransactions(transactions);
-    }
-    
-    async updateKPIs(transactions) {
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-        const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-        
-        // Filter transactions for current month
-        const currentMonthTransactions = transactions.filter(t => {
-            const transDate = new Date(t.date);
-            return transDate.getMonth() === currentMonth && 
-                   transDate.getFullYear() === currentYear;
-        });
-        
-        // Filter transactions for last month
-        const lastMonthTransactions = transactions.filter(t => {
-            const transDate = new Date(t.date);
-            return transDate.getMonth() === lastMonth && 
-                   transDate.getFullYear() === lastMonthYear;
-        });
-        
-        // Calculate current month totals
-        const monthlyIncome = currentMonthTransactions
-            .filter(t => t.type === 'income')
-            .reduce((sum, t) => sum + t.amount, 0);
-        
-        const monthlyExpense = currentMonthTransactions
-            .filter(t => t.type === 'expense')
-            .reduce((sum, t) => sum + t.amount, 0);
-        
-        const netIncome = monthlyIncome - monthlyExpense;
-        
-        // Calculate last month totals for comparison
-        const lastMonthIncome = lastMonthTransactions
-            .filter(t => t.type === 'income')
-            .reduce((sum, t) => sum + t.amount, 0);
-        
-        const lastMonthExpense = lastMonthTransactions
-            .filter(t => t.type === 'expense')
-            .reduce((sum, t) => sum + t.amount, 0);
-        
-        // Calculate trends
-        const incomeTrend = lastMonthIncome > 0 ? 
-            ((monthlyIncome - lastMonthIncome) / lastMonthIncome * 100).toFixed(1) : 0;
-        
-        const expenseTrend = lastMonthExpense > 0 ? 
-            ((monthlyExpense - lastMonthExpense) / lastMonthExpense * 100).toFixed(1) : 0;
-        
-        // Update KPI elements
-        document.getElementById('monthlyIncome').textContent = `KES ${monthlyIncome.toLocaleString()}`;
-        document.getElementById('monthlyExpense').textContent = `KES ${monthlyExpense.toLocaleString()}`;
-        document.getElementById('netIncome').textContent = `KES ${netIncome.toLocaleString()}`;
-        
-        // Update trends
-        const incomeTrendEl = document.getElementById('incomeTrend');
-        const expenseTrendEl = document.getElementById('expenseTrend');
-        
-        if (incomeTrendEl) {
-            incomeTrendEl.textContent = `${incomeTrend >= 0 ? '+' : ''}${incomeTrend}% from last month`;
-            incomeTrendEl.className = `kpi-trend ${parseFloat(incomeTrend) >= 0 ? 'positive' : 'negative'}`;
-        }
-        
-        if (expenseTrendEl) {
-            expenseTrendEl.textContent = `${expenseTrend >= 0 ? '+' : ''}${expenseTrend}% from last month`;
-            expenseTrendEl.className = `kpi-trend ${parseFloat(expenseTrend) >= 0 ? 'negative' : 'positive'}`;
-        }
-    }
-    
-    async updateEnterpriseInsights() {
-        if (!window.database || this.enterprises.length === 0) return;
-        
-        const transactions = await window.database.getTransactions();
-        const period = document.getElementById('insightsPeriod').value;
-        const now = new Date();
-        
-        // Filter transactions based on period
-        let filteredTransactions = transactions;
-        if (period === 'month') {
-            const currentMonth = now.getMonth();
-            const currentYear = now.getFullYear();
-            filteredTransactions = transactions.filter(t => {
-                const transDate = new Date(t.date);
-                return transDate.getMonth() === currentMonth && 
-                       transDate.getFullYear() === currentYear;
-            });
-        } else if (period === 'quarter') {
-            const currentQuarter = Math.floor(now.getMonth() / 3);
-            const currentYear = now.getFullYear();
-            filteredTransactions = transactions.filter(t => {
-                const transDate = new Date(t.date);
-                const quarter = Math.floor(transDate.getMonth() / 3);
-                return quarter === currentQuarter && 
-                       transDate.getFullYear() === currentYear;
-            });
-        } else if (period === 'year') {
-            const currentYear = now.getFullYear();
-            filteredTransactions = transactions.filter(t => {
-                const transDate = new Date(t.date);
-                return transDate.getFullYear() === currentYear;
-            });
-        }
-        
-        // Calculate enterprise performance
-        const enterprisePerformance = {};
-        this.enterprises.forEach(ent => {
-            enterprisePerformance[ent.name] = {
-                income: 0,
-                expense: 0,
-                net: 0,
-                color: ent.color,
-                icon: ent.icon || 'business'
-            };
-        });
-        
-        filteredTransactions.forEach(t => {
-            if (enterprisePerformance[t.enterprise]) {
-                if (t.type === 'income') {
-                    enterprisePerformance[t.enterprise].income += t.amount;
-                } else {
-                    enterprisePerformance[t.enterprise].expense += t.amount;
-                }
-            }
-        });
-        
-        // Calculate net and find best performer
-        let bestEnterprise = null;
-        let bestNet = -Infinity;
-        
-        Object.keys(enterprisePerformance).forEach(name => {
-            const perf = enterprisePerformance[name];
-            perf.net = perf.income - perf.expense;
-            
-            if (perf.net > bestNet) {
-                bestNet = perf.net;
-                bestEnterprise = { name, ...perf };
-            }
-        });
-        
-        // Update insights grid
-        this.updateInsightsGrid(enterprisePerformance);
-        
-        // Update best enterprise on enterprises page
-        this.updateBestEnterpriseSummary(bestEnterprise);
-    }
-    
-    updateInsightsGrid(enterprisePerformance) {
-        const container = document.getElementById('enterpriseInsights');
-        const enterprises = Object.keys(enterprisePerformance);
-        
-        if (enterprises.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <span class="material-icons">insights</span>
-                    <p data-i18n="noInsights">No performance data yet</p>
-                    <p class="empty-state-sub" data-i18n="addTransactionsForInsights">Add transactions to see enterprise insights</p>
-                </div>
-            `;
-            this.translatePage();
-            return;
-        }
-        
-        container.innerHTML = enterprises.map(name => {
-            const perf = enterprisePerformance[name];
-            const profitMargin = perf.income > 0 ? ((perf.net / perf.income) * 100).toFixed(1) : 0;
-            
-            return `
-                <div class="insight-card">
-                    <div class="insight-header">
-                        <div class="insight-icon" style="background-color: ${perf.color};">
-                            <span class="material-icons">${perf.icon}</span>
-                        </div>
-                        <div class="insight-title">${name}</div>
-                    </div>
-                    <div class="insight-stats">
-                        <div class="insight-stat">
-                            <div class="insight-stat-value" style="color: ${perf.color};">KES ${perf.income.toLocaleString()}</div>
-                            <div class="insight-stat-label">Income</div>
-                        </div>
-                        <div class="insight-stat">
-                            <div class="insight-stat-value">KES ${perf.expense.toLocaleString()}</div>
-                            <div class="insight-stat-label">Expenses</div>
-                        </div>
-                    </div>
-                    <div class="insight-trend">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>Net Profit: <strong>KES ${perf.net.toLocaleString()}</strong></span>
-                            <span style="color: ${perf.net >= 0 ? '#4CAF50' : '#F44336'}">
-                                ${profitMargin >= 0 ? '+' : ''}${profitMargin}%
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    updateBestEnterpriseSummary(bestEnterprise) {
-        const container = document.getElementById('bestEnterpriseSummary');
-        const iconEl = document.getElementById('bestEnterpriseIcon');
-        const nameEl = document.getElementById('bestEnterpriseName');
-        const statsEl = document.getElementById('bestEnterpriseStats');
-        const profitEl = document.getElementById('bestEnterpriseProfit');
-        
-        if (!bestEnterprise) {
-            nameEl.textContent = 'No data';
-            statsEl.textContent = 'Add transactions to see performance';
-            profitEl.innerHTML = '<span>KES 0</span><small>Net Profit</small>';
-            iconEl.innerHTML = '<span class="material-icons">business</span>';
-            return;
-        }
-        
-        const profitMargin = bestEnterprise.income > 0 ? 
-            ((bestEnterprise.net / bestEnterprise.income) * 100).toFixed(1) : 0;
-        
-        nameEl.textContent = bestEnterprise.name;
-        statsEl.textContent = `KES ${bestEnterprise.income.toLocaleString()} income • KES ${bestEnterprise.expense.toLocaleString()} expenses`;
-        profitEl.innerHTML = `<span>KES ${bestEnterprise.net.toLocaleString()}</span><small>Net Profit</small>`;
-        iconEl.innerHTML = `<span class="material-icons">${bestEnterprise.icon}</span>`;
-        iconEl.style.backgroundColor = `${bestEnterprise.color}20`;
-    }
-    
-    async loadEnterprises() {
-        const container = document.getElementById('enterprisesList');
-        if (!container) return;
-        
-        // Get current month transactions for enterprise stats
-        const transactions = await window.database.getTransactions();
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-        
-        const monthTransactions = transactions.filter(t => {
-            const transDate = new Date(t.date);
-            return transDate.getMonth() === currentMonth && 
-                   transDate.getFullYear() === currentYear;
-        });
-        
-        // Calculate enterprise stats
-        const enterpriseStats = {};
-        this.enterprises.forEach(ent => {
-            enterpriseStats[ent.name] = { income: 0, expense: 0, net: 0 };
-        });
-        
-        monthTransactions.forEach(t => {
-            if (enterpriseStats[t.enterprise]) {
-                if (t.type === 'income') {
-                    enterpriseStats[t.enterprise].income += t.amount;
-                } else {
-                    enterpriseStats[t.enterprise].expense += t.amount;
-                }
-            }
-        });
-        
-        // Calculate net profit
-        Object.keys(enterpriseStats).forEach(name => {
-            const stats = enterpriseStats[name];
-            stats.net = stats.income - stats.expense;
-        });
-        
-        if (this.enterprises.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <span class="material-icons">business</span>
-                    <p>No enterprises yet</p>
-                    <p class="empty-state-sub">Add your farm enterprises to start tracking</p>
-                    <button class="btn primary" id="addFirstEnterprise">Add your first enterprise</button>
-                </div>
-            `;
-            document.getElementById('addFirstEnterprise')?.addEventListener('click', () => this.showEnterpriseModal());
-            return;
-        }
-        
-        container.innerHTML = this.enterprises.map(ent => {
-            const stats = enterpriseStats[ent.name] || { income: 0, expense: 0, net: 0 };
-            const profitMargin = stats.income > 0 ? ((stats.net / stats.income) * 100).toFixed(1) : 0;
-            
-            return `
-                <div class="enterprise-card enterprise-${ent.type}" data-id="${ent.id}">
-                    <div class="enterprise-icon" style="background-color: ${ent.color}20; color: ${ent.color};">
-                        <span class="material-icons">${this.getEnterpriseIcon(ent.type)}</span>
-                    </div>
-                    <h3>${ent.name}</h3>
-                    <p>${ent.type.charAt(0).toUpperCase() + ent.type.slice(1)} enterprise</p>
-                    <div class="enterprise-stats">
-                        <div class="stat">
-                            <span class="stat-label">Income</span>
-                            <span class="stat-value">KES ${stats.income.toLocaleString()}</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-label">Expenses</span>
-                            <span class="stat-value">KES ${stats.expense.toLocaleString()}</span>
-                        </div>
-                    </div>
-                    <div class="enterprise-profit">
-                        <span class="profit-label">Net Profit</span>
-                        <span class="profit-value ${stats.net >= 0 ? 'positive' : 'negative'}">
-                            ${stats.net >= 0 ? '+' : ''}KES ${stats.net.toLocaleString()}
-                        </span>
-                        <span class="profit-margin ${stats.net >= 0 ? 'positive' : 'negative'}">
-                            ${profitMargin >= 0 ? '+' : ''}${profitMargin}%
-                        </span>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-        // Make enterprise cards clickable
-        document.querySelectorAll('.enterprise-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                const id = e.currentTarget.getAttribute('data-id');
-                this.viewEnterprise(parseInt(id));
-            });
-        });
-        
-        // Update best enterprise summary
-        this.updateEnterpriseInsights();
-    }
-    
-    toggleTheme(isDark) {
-        const newTheme = isDark ? 'dark' : 'light';
+    toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', newTheme);
         this.userSettings.theme = newTheme;
         this.saveUserSettings();
         
-        // Update theme toggle UI
-        const themeIcon = document.querySelector('#themeIcon');
-        if (themeIcon) {
-            themeIcon.textContent = newTheme === 'dark' ? 'light_mode' : 'dark_mode';
-        }
-        
-        // Update header theme toggle
-        const headerThemeIcon = document.querySelector('.theme-icon');
-        if (headerThemeIcon) {
-            headerThemeIcon.textContent = newTheme === 'dark' ? 'light_mode' : 'dark_mode';
-        }
+        // Update icon
+        const icon = document.querySelector('#themeToggle .material-icons');
+        icon.textContent = newTheme === 'dark' ? 'light_mode' : 'dark_mode';
     }
     
     setLanguage(lang) {
@@ -749,207 +176,305 @@ class FarmFlowApp {
             }
         });
         
-        // Translate the entire page
-        this.translatePage();
+        // Update content based on language
+        this.updateContentForLanguage();
     }
     
-    translatePage() {
-        const translations = this.translations[this.currentLanguage];
+    updateContentForLanguage() {
+        // This would update all text content based on selected language
+        // For now, just update a few key elements
+        const translations = {
+            en: {
+                dashboard: 'Dashboard',
+                transactions: 'Transactions',
+                enterprises: 'Enterprises',
+                reports: 'Reports'
+            },
+            sw: {
+                dashboard: 'Dashibodi',
+                transactions: 'Miamala',
+                enterprises: 'Biashara',
+                reports: 'Ripoti'
+            }
+        };
         
-        // Translate all elements with data-i18n attribute
-        document.querySelectorAll('[data-i18n]').forEach(element => {
-            const key = element.getAttribute('data-i18n');
-            if (translations[key]) {
-                element.textContent = translations[key];
+        const trans = translations[this.currentLanguage];
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (trans[key]) {
+                el.textContent = trans[key];
             }
         });
-        
-        // Translate placeholders
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-            const key = element.getAttribute('data-i18n-placeholder');
-            if (translations[key]) {
-                element.setAttribute('placeholder', translations[key]);
-            }
-        });
-        
-        // Update sync status text
-        const syncText = document.getElementById('syncText');
-        if (syncText && translations.online) {
-            syncText.textContent = this.isOnline ? translations.online : 'Offline';
+    }
+    
+    setupLanguage() {
+        // Try to detect browser language
+        const browserLang = navigator.language.split('-')[0];
+        if (browserLang === 'sw') {
+            this.setLanguage('sw');
+        } else {
+            this.setLanguage('en');
         }
     }
     
-    loadSettings() {
-        // Load avatar options
-        this.loadAvatarOptions();
+    setupTheme() {
+        // Check for saved theme or prefer-color-scheme
+        const savedTheme = localStorage.getItem('farmflow-theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         
-        // Load other settings
-        document.getElementById('userNameInput').value = this.userSettings.name;
-        document.getElementById('defaultCurrency').value = this.userSettings.currency;
-        document.getElementById('autoSync').checked = this.userSettings.autoSync;
-        document.getElementById('notifications').checked = this.userSettings.notifications;
-        document.getElementById('reduceMotion').checked = this.userSettings.reduceMotion;
-        document.getElementById('darkModeToggle').checked = this.userSettings.theme === 'dark';
+        let theme = savedTheme || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
         
-        // Update theme icon
-        const themeIcon = document.querySelector('#themeIcon');
-        if (themeIcon) {
-            themeIcon.textContent = this.userSettings.theme === 'dark' ? 'light_mode' : 'dark_mode';
+        // Update icon
+        const icon = document.querySelector('#themeToggle .material-icons');
+        icon.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
+    }
+    
+    checkOnlineStatus() {
+        this.isOnline = navigator.onLine;
+        const statusElement = document.getElementById('syncStatus');
+        const offlineIndicator = document.getElementById('offlineIndicator');
+        
+        if (this.isOnline) {
+            statusElement.textContent = 'Online';
+            statusElement.className = 'sync-status';
+            offlineIndicator.classList.remove('show');
+        } else {
+            statusElement.textContent = 'Offline';
+            statusElement.className = 'sync-status offline';
+            offlineIndicator.classList.add('show');
         }
     }
     
-    loadAvatarOptions() {
-        const container = document.getElementById('avatarOptions');
-        if (!container) return;
+    handleOnline() {
+        this.isOnline = true;
+        this.checkOnlineStatus();
+        this.showToast('Back online. Syncing data...', 'sync');
+        this.manualSync();
+    }
+    
+    handleOffline() {
+        this.isOnline = false;
+        this.checkOnlineStatus();
+        this.showToast('You are offline. Changes will sync when back online.', 'wifi_off');
+    }
+    
+    async setupDatabase() {
+        // Initialize Dexie database
+        this.db = new Dexie('FarmFlowDB');
         
-        container.innerHTML = this.avatars.map(avatar => `
-            <div class="avatar-option ${avatar === this.userSettings.avatar ? 'selected' : ''}" 
-                 data-avatar="${avatar}">
-                ${avatar}
-            </div>
-        `).join('');
+        this.db.version(1).stores({
+            transactions: '++id, date, type, enterprise, category, amount, currency, synced',
+            enterprises: '++id, name, type, color, icon',
+            budgets: '++id, enterprise, month, year, amount, spent',
+            syncQueue: '++id, action, table, data, timestamp'
+        });
         
-        // Add click event listeners
-        document.querySelectorAll('.avatar-option').forEach(option => {
-            option.addEventListener('click', (e) => {
-                const avatar = e.currentTarget.getAttribute('data-avatar');
-                this.updateAvatar(avatar);
+        // Initialize with sample data if empty
+        const count = await this.db.transactions.count();
+        if (count === 0) {
+            await this.initializeSampleData();
+        }
+    }
+    
+    async initializeSampleData() {
+        // Add sample enterprises
+        await this.db.enterprises.bulkPut(this.enterprises);
+        
+        // Add sample transactions
+        const sampleTransactions = [
+            {
+                date: new Date().toISOString().split('T')[0],
+                type: 'income',
+                enterprise: 'Dairy',
+                category: 'Milk Sales',
+                amount: 15000,
+                currency: 'KES',
+                note: 'Monthly milk sale to cooperative',
+                synced: true
+            },
+            {
+                date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+                type: 'expense',
+                enterprise: 'Crops',
+                category: 'Fertilizer',
+                amount: 5000,
+                currency: 'KES',
+                note: 'Fertilizer for maize field',
+                synced: true
+            }
+        ];
+        
+        await this.db.transactions.bulkAdd(sampleTransactions);
+    }
+    
+    async loadInitialData() {
+        // Load enterprises for dropdowns
+        const enterprises = await this.db.enterprises.toArray();
+        this.enterprises = enterprises;
+        
+        // Update enterprise dropdowns
+        this.updateEnterpriseDropdowns();
+    }
+    
+    updateEnterpriseDropdowns() {
+        const enterpriseSelects = document.querySelectorAll('select[id$="Enterprise"]');
+        
+        enterpriseSelects.forEach(select => {
+            // Clear existing options except first
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+            
+            // Add enterprise options
+            this.enterprises.forEach(enterprise => {
+                const option = document.createElement('option');
+                option.value = enterprise.name;
+                option.textContent = enterprise.name;
+                select.appendChild(option);
             });
         });
     }
     
-    updateAvatar(avatar) {
-        this.userSettings.avatar = avatar;
-        this.saveUserSettings();
+    updateTransactionCategories() {
+        const type = document.querySelector('.type-btn.active').getAttribute('data-type');
+        const categorySelect = document.getElementById('transCategory');
         
-        // Update avatar in UI
-        document.getElementById('userAvatar').textContent = avatar;
+        // Clear existing options
+        while (categorySelect.options.length > 1) {
+            categorySelect.remove(1);
+        }
         
-        // Update selection
-        document.querySelectorAll('.avatar-option').forEach(option => {
-            option.classList.remove('selected');
-            if (option.getAttribute('data-avatar') === avatar) {
-                option.classList.add('selected');
-            }
+        // Add categories based on type
+        this.categories[type].forEach(category => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categorySelect.appendChild(option);
         });
     }
     
-    updateUserName(name) {
-        this.userSettings.name = name;
-        this.saveUserSettings();
-        document.getElementById('userName').textContent = name;
-    }
-    
-    updateCurrency(currency) {
-        this.userSettings.currency = currency;
-        this.saveUserSettings();
-    }
-    
-    updateAutoSync(enabled) {
-        this.userSettings.autoSync = enabled;
-        this.saveUserSettings();
-    }
-    
-    updateNotifications(enabled) {
-        this.userSettings.notifications = enabled;
-        this.saveUserSettings();
-    }
-    
-    updateReduceMotion(enabled) {
-        this.userSettings.reduceMotion = enabled;
-        this.saveUserSettings();
+    async updateDashboard() {
+        // Calculate KPIs
+        const transactions = await this.db.transactions.toArray();
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
         
-        if (enabled) {
-            document.documentElement.style.setProperty('--transition-fast', '0ms');
-            document.documentElement.style.setProperty('--transition-normal', '0ms');
-            document.documentElement.style.setProperty('--transition-slow', '0ms');
-        } else {
-            document.documentElement.style.setProperty('--transition-fast', '150ms ease');
-            document.documentElement.style.setProperty('--transition-normal', '250ms ease');
-            document.documentElement.style.setProperty('--transition-slow', '350ms ease');
-        }
-    }
-    
-    showBudgetModal() {
-        this.showToast('Budget feature coming soon!', 'savings');
-    }
-    
-    showInvoiceModal() {
-        this.showToast('Invoice feature coming soon!', 'description');
-    }
-    
-    showAssetModal() {
-        this.showToast('Asset register feature coming soon!', 'agriculture');
-    }
-    
-    showLoanModal() {
-        this.showToast('Loan tracking feature coming soon!', 'account_balance');
-    }
-    
-    // Enhanced ROI Calculator
-    showROICalculator() {
-        document.getElementById('roiModal').classList.add('active');
-        this.calculateROI(); // Initial calculation
-    }
-    
-    calculateROI() {
-        const investment = parseFloat(document.getElementById('roiInvestment').value) || 0;
-        const revenue = parseFloat(document.getElementById('roiRevenue').value) || 0;
-        const costs = parseFloat(document.getElementById('roiCosts').value) || 0;
-        const years = parseFloat(document.getElementById('roiYears').value) || 1;
+        // Filter transactions for current month
+        const monthlyTransactions = transactions.filter(t => {
+            const transDate = new Date(t.date);
+            return transDate.getMonth() === currentMonth && 
+                   transDate.getFullYear() === currentYear;
+        });
         
-        // Calculate metrics
-        const annualNetProfit = revenue - costs;
-        const totalNetProfit = annualNetProfit * years;
-        const roiPercentage = investment > 0 ? (totalNetProfit / investment * 100).toFixed(1) : 0;
-        const paybackPeriod = annualNetProfit > 0 ? (investment / annualNetProfit).toFixed(2) : '∞';
-        const totalReturn = investment + totalNetProfit;
-        const annualizedReturn = investment > 0 ? 
-            (Math.pow(1 + totalNetProfit/investment, 1/years) - 1) * 100 : 0;
+        // Calculate totals
+        const monthlyIncome = monthlyTransactions
+            .filter(t => t.type === 'income')
+            .reduce((sum, t) => sum + t.amount, 0);
         
-        // Update UI
-        document.getElementById('roiNetProfit').textContent = `KES ${annualNetProfit.toLocaleString()}`;
-        document.getElementById('roiPercentage').textContent = `${roiPercentage}%`;
-        document.getElementById('roiPayback').textContent = `${paybackPeriod} years`;
-        document.getElementById('roiTotalReturn').textContent = `KES ${totalReturn.toLocaleString()}`;
-        document.getElementById('roiAnnualized').textContent = `${annualizedReturn.toFixed(1)}%`;
+        const monthlyExpense = monthlyTransactions
+            .filter(t => t.type === 'expense')
+            .reduce((sum, t) => sum + t.amount, 0);
         
-        // Update ROI percentage color
-        const roiEl = document.getElementById('roiPercentage');
-        roiEl.className = `roi-percentage ${parseFloat(roiPercentage) >= 0 ? 'positive' : 'negative'}`;
+        const netIncome = monthlyIncome - monthlyExpense;
+        
+        // Calculate overall balance (simplified)
+        const allIncome = transactions
+            .filter(t => t.type === 'income')
+            .reduce((sum, t) => sum + t.amount, 0);
+        
+        const allExpense = transactions
+            .filter(t => t.type === 'expense')
+            .reduce((sum, t) => sum + t.amount, 0);
+        
+        const currentBalance = allIncome - allExpense;
+        
+        // Update KPI elements
+        document.getElementById('monthlyIncome').textContent = `KES ${monthlyIncome.toLocaleString()}`;
+        document.getElementById('monthlyExpense').textContent = `KES ${monthlyExpense.toLocaleString()}`;
+        document.getElementById('netIncome').textContent = `KES ${netIncome.toLocaleString()}`;
+        document.getElementById('currentBalance').textContent = `KES ${currentBalance.toLocaleString()}`;
+        
+        // Update recent transactions
+        this.updateRecentTransactions(transactions);
         
         // Update chart
-        this.updateROIChart(investment, totalNetProfit, costs * years);
+        this.updateIncomeChart(transactions);
     }
     
-    updateROIChart(investment, totalProfit, totalCosts) {
-        const ctx = document.getElementById('roiChart');
-        if (!ctx) return;
+    updateRecentTransactions(transactions) {
+        const container = document.getElementById('recentTransactions');
+        const recent = transactions
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 5);
         
-        const ctx2d = ctx.getContext('2d');
-        const totalReturn = investment + totalProfit;
-        
-        if (this.roiChart) {
-            this.roiChart.destroy();
+        if (recent.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="material-icons">receipt</span>
+                    <p>No transactions yet</p>
+                    <button class="btn primary" id="addFirstTransaction">Add your first transaction</button>
+                </div>
+            `;
+            document.getElementById('addFirstTransaction').addEventListener('click', () => this.showTransactionModal());
+            return;
         }
         
-        this.roiChart = new Chart(ctx2d, {
-            type: 'doughnut',
+        container.innerHTML = recent.map(trans => `
+            <div class="transaction-item">
+                <div class="transaction-info">
+                    <div class="transaction-category">${trans.category}</div>
+                    <div class="transaction-meta">
+                        <span>${trans.enterprise}</span>
+                        <span>${new Date(trans.date).toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <div class="transaction-amount ${trans.type}">
+                    ${trans.type === 'income' ? '+' : '-'} KES ${trans.amount.toLocaleString()}
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    updateIncomeChart(transactions) {
+        const ctx = document.getElementById('incomeChart').getContext('2d');
+        const last6Months = Array.from({length: 6}, (_, i) => {
+            const date = new Date();
+            date.setMonth(date.getMonth() - i);
+            return {
+                month: date.toLocaleString('default', { month: 'short' }),
+                year: date.getFullYear()
+            };
+        }).reverse();
+        
+        const incomeByMonth = last6Months.map(({month, year}) => {
+            const monthIncome = transactions
+                .filter(t => t.type === 'income')
+                .filter(t => {
+                    const transDate = new Date(t.date);
+                    return transDate.getMonth() === new Date(`${month} 1, ${year}`).getMonth() &&
+                           transDate.getFullYear() === year;
+                })
+                .reduce((sum, t) => sum + t.amount, 0);
+            return monthIncome;
+        });
+        
+        if (this.incomeChart) {
+            this.incomeChart.destroy();
+        }
+        
+        this.incomeChart = new Chart(ctx, {
+            type: 'line',
             data: {
-                labels: ['Investment', 'Profit', 'Costs'],
+                labels: last6Months.map(m => m.month),
                 datasets: [{
-                    data: [investment, totalProfit, totalCosts],
-                    backgroundColor: [
-                        'rgba(54, 162, 235, 0.8)',
-                        'rgba(75, 192, 192, 0.8)',
-                        'rgba(255, 99, 132, 0.8)'
-                    ],
-                    borderColor: [
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(255, 99, 132, 1)'
-                    ],
-                    borderWidth: 1
+                    label: 'Income',
+                    data: incomeByMonth,
+                    borderColor: '#2E7D32',
+                    backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                    tension: 0.4,
+                    fill: true
                 }]
             },
             options: {
@@ -957,21 +482,24 @@ class FarmFlowApp {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return 'KES ' + value.toLocaleString();
+                            }
                         }
                     },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
-                                return `${label}: KES ${value.toLocaleString()} (${percentage}%)`;
-                            }
+                    x: {
+                        grid: {
+                            display: false
                         }
                     }
                 }
@@ -979,29 +507,295 @@ class FarmFlowApp {
         });
     }
     
+    async loadTransactions() {
+        const container = document.getElementById('allTransactions');
+        const transactions = await this.db.transactions
+            .orderBy('date')
+            .reverse()
+            .toArray();
+        
+        if (transactions.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="material-icons">receipt</span>
+                    <p>No transactions yet</p>
+                    <button class="btn primary" id="addFirstTrans">Add your first transaction</button>
+                </div>
+            `;
+            document.getElementById('addFirstTrans').addEventListener('click', () => this.showTransactionModal());
+            return;
+        }
+        
+        container.innerHTML = transactions.map(trans => `
+            <div class="transaction-item" data-id="${trans.id}">
+                <div class="transaction-info">
+                    <div class="transaction-category">${trans.category}</div>
+                    <div class="transaction-meta">
+                        <span>${trans.enterprise}</span>
+                        <span>${new Date(trans.date).toLocaleDateString()}</span>
+                        ${trans.note ? `<span>${trans.note}</span>` : ''}
+                    </div>
+                </div>
+                <div class="transaction-actions">
+                    <div class="transaction-amount ${trans.type}">
+                        ${trans.type === 'income' ? '+' : '-'} KES ${trans.amount.toLocaleString()}
+                    </div>
+                    <button class="icon-btn small" onclick="app.editTransaction(${trans.id})">
+                        <span class="material-icons">edit</span>
+                    </button>
+                    <button class="icon-btn small" onclick="app.deleteTransaction(${trans.id})">
+                        <span class="material-icons">delete</span>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    async loadEnterprises() {
+        const container = document.getElementById('enterprisesList');
+        const enterprises = await this.db.enterprises.toArray();
+        
+        container.innerHTML = enterprises.map(ent => `
+            <div class="enterprise-card enterprise-${ent.type}">
+                <div class="enterprise-icon" style="background-color: ${ent.color}20; color: ${ent.color};">
+                    <span class="material-icons">${ent.icon}</span>
+                </div>
+                <h3>${ent.name}</h3>
+                <p>Manage your ${ent.name.toLowerCase()} enterprise</p>
+                <div class="enterprise-stats">
+                    <div class="stat">
+                        <span class="stat-label">This Month</span>
+                        <span class="stat-value">KES 0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">YTD</span>
+                        <span class="stat-value">KES 0</span>
+                    </div>
+                </div>
+                <button class="btn outline" onclick="app.viewEnterprise(${ent.id})">View Details</button>
+            </div>
+        `).join('');
+    }
+    
+    loadReports() {
+        // Reports are loaded via buttons
+    }
+    
+    showTransactionModal() {
+        document.getElementById('transactionModal').classList.add('active');
+        document.getElementById('transDate').valueAsDate = new Date();
+        this.updateTransactionCategories();
+    }
+    
+    hideTransactionModal() {
+        document.getElementById('transactionModal').classList.remove('active');
+        document.getElementById('transactionForm').reset();
+    }
+    
+    async saveTransaction(e) {
+        e.preventDefault();
+        
+        const form = e.target;
+        const type = document.querySelector('.type-btn.active').getAttribute('data-type');
+        
+        const transaction = {
+            date: form.transDate.value,
+            type: type,
+            enterprise: form.transEnterprise.value,
+            category: form.transCategory.value,
+            amount: parseFloat(form.transAmount.value),
+            currency: 'KES',
+            note: form.transNote.value,
+            synced: this.isOnline
+        };
+        
+        try {
+            await this.db.transactions.add(transaction);
+            this.hideTransactionModal();
+            this.showToast('Transaction saved successfully!', 'check_circle');
+            
+            // Update UI
+            if (this.currentPage === 'dashboard') {
+                this.updateDashboard();
+            } else if (this.currentPage === 'transactions') {
+                this.loadTransactions();
+            }
+            
+            // Add to sync queue if offline
+            if (!this.isOnline) {
+                await this.addToSyncQueue('create', 'transactions', transaction);
+            }
+            
+        } catch (error) {
+            console.error('Error saving transaction:', error);
+            this.showToast('Error saving transaction', 'error');
+        }
+    }
+    
+    async editTransaction(id) {
+        const transaction = await this.db.transactions.get(id);
+        if (transaction) {
+            this.showTransactionModal();
+            // Pre-populate form with transaction data
+            // This would be implemented in a full version
+        }
+    }
+    
+    async deleteTransaction(id) {
+        if (confirm('Are you sure you want to delete this transaction?')) {
+            await this.db.transactions.delete(id);
+            this.showToast('Transaction deleted', 'delete');
+            
+            // Update UI
+            if (this.currentPage === 'dashboard') {
+                this.updateDashboard();
+            } else if (this.currentPage === 'transactions') {
+                this.loadTransactions();
+            }
+            
+            // Add to sync queue if offline
+            if (!this.isOnline) {
+                await this.addToSyncQueue('delete', 'transactions', { id });
+            }
+        }
+    }
+    
+    async addToSyncQueue(action, table, data) {
+        const queueItem = {
+            action,
+            table,
+            data,
+            timestamp: new Date().toISOString()
+        };
+        
+        await this.db.syncQueue.add(queueItem);
+        this.syncQueue.push(queueItem);
+        
+        // Show sync pending indicator
+        const statusElement = document.getElementById('syncStatus');
+        statusElement.textContent = 'Sync Pending';
+        statusElement.className = 'sync-status syncing';
+    }
+    
+    async manualSync() {
+        if (!this.isOnline) {
+            this.showToast('Cannot sync while offline', 'wifi_off');
+            return;
+        }
+        
+        const statusElement = document.getElementById('syncStatus');
+        statusElement.textContent = 'Syncing...';
+        statusElement.className = 'sync-status syncing';
+        
+        this.showToast('Syncing data...', 'sync');
+        
+        // Simulate sync delay
+        setTimeout(async () => {
+            // In a real app, this would sync with Firebase
+            const queueItems = await this.db.syncQueue.toArray();
+            
+            if (queueItems.length === 0) {
+                statusElement.textContent = 'Online';
+                statusElement.className = 'sync-status';
+                this.showToast('Data is up to date', 'check_circle');
+                return;
+            }
+            
+            // Clear sync queue
+            await this.db.syncQueue.clear();
+            this.syncQueue = [];
+            
+            // Mark transactions as synced
+            await this.db.transactions.toCollection().modify({ synced: true });
+            
+            statusElement.textContent = 'Online';
+            statusElement.className = 'sync-status';
+            this.showToast('Sync completed successfully!', 'check_circle');
+            
+            // Refresh data
+            if (this.currentPage === 'dashboard') {
+                this.updateDashboard();
+            }
+            
+        }, 1500);
+    }
+    
+    handleQuickAction(action) {
+        switch(action) {
+            case 'add-income':
+                this.showTransactionModal();
+                document.querySelectorAll('.type-btn')[0].click();
+                break;
+            case 'add-expense':
+                this.showTransactionModal();
+                document.querySelectorAll('.type-btn')[1].click();
+                break;
+            case 'sell-produce':
+                this.showTransactionModal();
+                document.querySelectorAll('.type-btn')[0].click();
+                document.getElementById('transCategory').value = 'Crop Sales';
+                break;
+            case 'record-payment':
+                this.showTransactionModal();
+                document.querySelectorAll('.type-btn')[0].click();
+                document.getElementById('transCategory').value = 'Other Income';
+                break;
+        }
+    }
+    
+    showToast(message, icon = 'info') {
+        const toast = document.getElementById('syncToast');
+        const iconElement = document.getElementById('syncIcon');
+        const messageElement = document.getElementById('syncMessage');
+        
+        iconElement.textContent = icon;
+        messageElement.textContent = message;
+        
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+    
     loadUserSettings() {
         const saved = localStorage.getItem('farmflow-settings');
         if (saved) {
-            try {
-                this.userSettings = JSON.parse(saved);
-            } catch (e) {
-                console.error('Error loading settings:', e);
-            }
+            this.userSettings = JSON.parse(saved);
         }
         
         // Apply settings
         document.getElementById('userName').textContent = this.userSettings.name;
-        document.getElementById('userAvatar').textContent = this.userSettings.avatar;
     }
     
     saveUserSettings() {
         localStorage.setItem('farmflow-settings', JSON.stringify(this.userSettings));
     }
     
-    // Other methods remain similar but updated for new features...
+    setupServiceWorker() {
+        // Already registered in HTML
+        console.log('Service Worker setup complete');
+    }
+    
+    setupInstallPrompt() {
+        // Implementation for install prompt
+    }
+    
+    showInstallPrompt() {
+        // Show custom install prompt
+        if (this.deferredPrompt) {
+            this.showToast('Install FarmFlow for quick access!', 'download');
+            // Could add a custom install button here
+        }
+    }
+    
+    viewEnterprise(id) {
+        // Navigate to enterprise details
+        console.log('View enterprise:', id);
+    }
 }
 
-// Initialize the app
+// Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new FarmFlowApp();
 });
