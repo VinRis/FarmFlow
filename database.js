@@ -1,4 +1,4 @@
-// database.js - Simplified working version
+// database.js - Updated with more methods
 class FarmFlowDatabase {
     constructor() {
         this.db = null;
@@ -8,102 +8,105 @@ class FarmFlowDatabase {
     async init() {
         this.db = new Dexie('FarmFlowDB');
         
-        this.db.version(1).stores({
-            transactions: '++id, date, type, enterprise, category, amount, currency, note, synced, createdAt',
-            enterprises: '++id, name, type, color, description, createdAt'
+        this.db.version(2).stores({
+            transactions: '++id, date, type, enterprise, category, amount, currency, synced, createdAt',
+            enterprises: '++id, name, type, color, icon, description, createdAt',
+            budgets: '++id, enterprise, month, year, amount, spent, alerts, createdAt',
+            invoices: '++id, number, customer, amount, date, status, items, createdAt',
+            assets: '++id, name, type, value, purchaseDate, depreciation, status, createdAt',
+            loans: '++id, provider, amount, interest, term, startDate, status, payments, createdAt'
         });
         
         await this.db.open();
         console.log('Database initialized');
-        
-        // Add default enterprises if none exist
-        const enterpriseCount = await this.db.enterprises.count();
-        if (enterpriseCount === 0) {
-            await this.db.enterprises.bulkAdd([
-                { name: 'Dairy', type: 'dairy', color: '#2196F3', description: 'Dairy farming', createdAt: new Date().toISOString() },
-                { name: 'Poultry', type: 'poultry', color: '#FF9800', description: 'Poultry farming', createdAt: new Date().toISOString() },
-                { name: 'Crops', type: 'crops', color: '#4CAF50', description: 'Crop farming', createdAt: new Date().toISOString() },
-                { name: 'Livestock', type: 'livestock', color: '#795548', description: 'Livestock farming', createdAt: new Date().toISOString() }
-            ]);
-        }
     }
     
-    // Transaction methods
-    async addTransaction(transaction) {
-        return await this.db.transactions.add(transaction);
-    }
-    
-    async getTransactions(filters = {}) {
-        let collection = this.db.transactions.orderBy('date');
+    // Enhanced transaction methods with enterprise stats
+    async getEnterpriseStats(enterpriseName, period = 'month') {
+        const transactions = await this.db.transactions.toArray();
+        const now = new Date();
+        let filteredTransactions = transactions;
         
-        if (filters.type) {
-            collection = collection.filter(t => t.type === filters.type);
-        }
-        
-        if (filters.enterprise) {
-            collection = collection.filter(t => t.enterprise === filters.enterprise);
+        if (period === 'month') {
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            filteredTransactions = transactions.filter(t => {
+                const transDate = new Date(t.date);
+                return transDate.getMonth() === currentMonth && 
+                       transDate.getFullYear() === currentYear &&
+                       t.enterprise === enterpriseName;
+            });
+        } else if (period === 'year') {
+            const currentYear = now.getFullYear();
+            filteredTransactions = transactions.filter(t => {
+                const transDate = new Date(t.date);
+                return transDate.getFullYear() === currentYear &&
+                       t.enterprise === enterpriseName;
+            });
         }
         
-        return await collection.reverse().toArray();
-    }
-    
-    async getTransaction(id) {
-        return await this.db.transactions.get(id);
-    }
-    
-    async deleteTransaction(id) {
-        return await this.db.transactions.delete(id);
-    }
-    
-    async searchTransactions(query) {
-        const allTransactions = await this.db.transactions.toArray();
-        return allTransactions.filter(t => 
-            t.category.toLowerCase().includes(query.toLowerCase()) ||
-            t.enterprise.toLowerCase().includes(query.toLowerCase()) ||
-            (t.note && t.note.toLowerCase().includes(query.toLowerCase()))
-        );
-    }
-    
-    // Enterprise methods
-    async addEnterprise(enterprise) {
-        return await this.db.enterprises.add(enterprise);
-    }
-    
-    async getEnterprises() {
-        return await this.db.enterprises.toArray();
-    }
-    
-    async getEnterprise(id) {
-        return await this.db.enterprises.get(id);
-    }
-    
-    // Export/Import
-    async exportData() {
-        const data = {
-            transactions: await this.db.transactions.toArray(),
-            enterprises: await this.db.enterprises.toArray(),
-            exportDate: new Date().toISOString(),
-            version: '1.0'
+        const income = filteredTransactions
+            .filter(t => t.type === 'income')
+            .reduce((sum, t) => sum + t.amount, 0);
+        
+        const expense = filteredTransactions
+            .filter(t => t.type === 'expense')
+            .reduce((sum, t) => sum + t.amount, 0);
+        
+        return {
+            income,
+            expense,
+            net: income - expense,
+            transactionCount: filteredTransactions.length
         };
-        return JSON.stringify(data, null, 2);
     }
     
-    async importData(jsonData) {
-        const data = JSON.parse(jsonData);
+    async getBestPerformingEnterprise(period = 'month') {
+        const enterprises = await this.db.enterprises.toArray();
+        const transactions = await this.db.transactions.toArray();
+        const now = new Date();
         
-        await this.db.transactions.clear();
-        await this.db.enterprises.clear();
+        let bestEnterprise = null;
+        let bestNet = -Infinity;
         
-        if (data.transactions) {
-            await this.db.transactions.bulkAdd(data.transactions);
+        for (const enterprise of enterprises) {
+            let filteredTransactions = transactions.filter(t => t.enterprise === enterprise.name);
+            
+            if (period === 'month') {
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+                filteredTransactions = filteredTransactions.filter(t => {
+                    const transDate = new Date(t.date);
+                    return transDate.getMonth() === currentMonth && 
+                           transDate.getFullYear() === currentYear;
+                });
+            }
+            
+            const income = filteredTransactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const expense = filteredTransactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const net = income - expense;
+            
+            if (net > bestNet) {
+                bestNet = net;
+                bestEnterprise = {
+                    ...enterprise,
+                    income,
+                    expense,
+                    net
+                };
+            }
         }
         
-        if (data.enterprises) {
-            await this.db.enterprises.bulkAdd(data.enterprises);
-        }
-        
-        return true;
+        return bestEnterprise;
     }
+    
+    // Other methods remain...
 }
 
 // Initialize database
