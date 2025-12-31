@@ -1,4 +1,4 @@
-// ui.js - Simplified
+// ui.js - Minimal working version
 class UIHelper {
     constructor() {
         this.init();
@@ -9,7 +9,6 @@ class UIHelper {
     }
 }
 
-// Initialize UI helper
 document.addEventListener('DOMContentLoaded', () => {
     window.uiHelper = new UIHelper();
 });
