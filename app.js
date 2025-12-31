@@ -1,4 +1,4 @@
-// app.js
+// app.js - Updated with all fixes
 class FarmFlowApp {
     constructor() {
         this.currentPage = 'dashboard';
@@ -9,19 +9,22 @@ class FarmFlowApp {
             name: 'FarmFlow User',
             currency: 'KES',
             theme: 'light',
-            language: 'en'
+            language: 'en',
+            autoSync: true
         };
         
-        this.enterprises = [
-            { id: 1, name: 'Dairy', type: 'dairy', color: '#2196F3', icon: 'agriculture' },
-            { id: 2, name: 'Poultry', type: 'poultry', color: '#FFC107', icon: 'egg' },
-            { id: 3, name: 'Crops', type: 'crops', color: '#4CAF50', icon: 'grass' },
-            { id: 4, name: 'Livestock', type: 'livestock', color: '#795548', icon: 'pets' }
-        ];
-        
+        this.enterprises = [];
         this.categories = {
-            income: ['Crop Sales', 'Livestock Sales', 'Milk Sales', 'Egg Sales', 'Government Support', 'Other Income'],
-            expense: ['Seeds', 'Fertilizer', 'Animal Feed', 'Veterinary', 'Labor', 'Transport', 'Equipment', 'Utilities', 'Other Expenses']
+            income: [
+                'Crop Sales', 'Livestock Sales', 'Milk Sales', 'Egg Sales', 
+                'Honey Sales', 'Fish Sales', 'Government Support', 'Loan Received',
+                'Investment', 'Other Income'
+            ],
+            expense: [
+                'Seeds', 'Fertilizer', 'Animal Feed', 'Veterinary', 'Labor', 
+                'Transport', 'Equipment', 'Utilities', 'Rent', 'Loan Repayment',
+                'Insurance', 'Market Fees', 'Other Expenses'
+            ]
         };
         
         this.init();
@@ -33,7 +36,7 @@ class FarmFlowApp {
         this.setupLanguage();
         this.setupTheme();
         this.checkOnlineStatus();
-        this.setupDatabase();
+        await this.setupDatabase();
         await this.loadInitialData();
         this.updateDashboard();
         this.setupServiceWorker();
@@ -44,6 +47,11 @@ class FarmFlowApp {
         // Navigation
         document.getElementById('menuBtn').addEventListener('click', () => this.toggleDrawer(true));
         document.getElementById('closeDrawer').addEventListener('click', () => this.toggleDrawer(false));
+        
+        // Search functionality
+        document.getElementById('searchBtn').addEventListener('click', () => this.showSearch());
+        document.getElementById('closeSearch').addEventListener('click', () => this.hideSearch());
+        document.getElementById('globalSearch').addEventListener('input', (e) => this.performSearch(e.target.value));
         
         // Page navigation
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -74,6 +82,10 @@ class FarmFlowApp {
             });
         });
         
+        // View all buttons
+        document.getElementById('viewAllTransactions').addEventListener('click', () => this.navigateTo('transactions'));
+        document.getElementById('viewAllRecentTransactions').addEventListener('click', () => this.navigateTo('transactions'));
+        
         // FAB
         document.getElementById('fab').addEventListener('click', () => this.showTransactionModal());
         document.getElementById('addTransaction').addEventListener('click', () => this.showTransactionModal());
@@ -93,8 +105,44 @@ class FarmFlowApp {
             });
         });
         
-        // Sync button
-        document.getElementById('syncBtn').addEventListener('click', () => this.manualSync());
+        // Filter transactions
+        document.getElementById('filterTransactions').addEventListener('click', () => this.toggleTransactionFilters());
+        document.getElementById('clearFilters').addEventListener('click', () => this.clearTransactionFilters());
+        
+        // Enterprise page
+        document.getElementById('addEnterpriseBtn').addEventListener('click', () => this.showEnterpriseModal());
+        
+        // Reports
+        document.querySelectorAll('[data-report]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const reportType = e.target.getAttribute('data-report');
+                this.showReport(reportType);
+            });
+        });
+        
+        // Report modal
+        document.getElementById('closeReportModal').addEventListener('click', () => this.hideReportModal());
+        document.getElementById('printReport').addEventListener('click', () => this.printReport());
+        document.getElementById('exportReport').addEventListener('click', () => this.exportReport());
+        
+        // Backup & Restore
+        document.getElementById('createBackup').addEventListener('click', () => this.createBackup());
+        document.getElementById('chooseRestoreFile').addEventListener('click', () => document.getElementById('restoreFile').click());
+        document.getElementById('restoreFile').addEventListener('change', (e) => this.handleRestoreFile(e));
+        document.getElementById('restoreBackup').addEventListener('click', () => this.restoreBackup());
+        
+        // Settings
+        document.getElementById('userNameInput').addEventListener('change', (e) => this.updateUserName(e.target.value));
+        document.getElementById('defaultCurrency').addEventListener('change', (e) => this.updateCurrency(e.target.value));
+        document.getElementById('themeSelect').addEventListener('change', (e) => this.updateThemeSetting(e.target.value));
+        
+        // Help FAQ
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const item = question.parentElement;
+                item.classList.toggle('active');
+            });
+        });
         
         // Online/offline events
         window.addEventListener('online', () => this.handleOnline());
@@ -118,6 +166,8 @@ class FarmFlowApp {
     }
     
     navigateTo(page) {
+        console.log('Navigating to:', page);
+        
         // Update active nav item
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
@@ -145,10 +195,105 @@ class FarmFlowApp {
                     this.loadEnterprises();
                     break;
                 case 'reports':
-                    this.loadReports();
+                    // Reports loaded on button click
+                    break;
+                case 'budgets':
+                    this.loadBudgets();
+                    break;
+                case 'invoices':
+                    this.loadInvoices();
+                    break;
+                case 'assets':
+                    this.loadAssets();
+                    break;
+                case 'loans':
+                    this.loadLoans();
+                    break;
+                case 'backup':
+                    // Backup page doesn't need data loading
+                    break;
+                case 'settings':
+                    this.loadSettings();
+                    break;
+                case 'help':
+                    // Help page is static
                     break;
             }
+        } else {
+            console.error('Page not found:', page);
         }
+    }
+    
+    showSearch() {
+        document.getElementById('searchOverlay').classList.add('active');
+        document.getElementById('globalSearch').focus();
+    }
+    
+    hideSearch() {
+        document.getElementById('searchOverlay').classList.remove('active');
+        document.getElementById('globalSearch').value = '';
+        document.getElementById('searchResults').innerHTML = '';
+    }
+    
+    async performSearch(query) {
+        if (query.length < 2) {
+            document.getElementById('searchResults').innerHTML = '';
+            return;
+        }
+        
+        const results = [];
+        
+        // Search transactions
+        const transactions = await window.database.searchTransactions(query);
+        transactions.forEach(t => {
+            results.push({
+                type: 'transaction',
+                title: t.category,
+                details: `${t.type === 'income' ? '+' : '-'} ${t.currency} ${t.amount} - ${t.enterprise}`,
+                date: t.date,
+                action: () => this.viewTransaction(t.id)
+            });
+        });
+        
+        // Search enterprises
+        const enterprises = await window.database.getEnterprises();
+        enterprises.filter(e => e.name.toLowerCase().includes(query.toLowerCase())).forEach(e => {
+            results.push({
+                type: 'enterprise',
+                title: e.name,
+                details: e.type,
+                action: () => this.viewEnterprise(e.id)
+            });
+        });
+        
+        this.displaySearchResults(results);
+    }
+    
+    displaySearchResults(results) {
+        const container = document.getElementById('searchResults');
+        
+        if (results.length === 0) {
+            container.innerHTML = `
+                <div class="search-result-item">
+                    <div class="search-result-title">No results found</div>
+                    <div class="search-result-details">Try different keywords</div>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = results.map(result => `
+            <div class="search-result-item" onclick="app.executeSearchAction(${JSON.stringify(result.action).replace(/"/g, '&quot;')})">
+                <div class="search-result-type">${result.type}</div>
+                <div class="search-result-title">${result.title}</div>
+                <div class="search-result-details">${result.details}</div>
+            </div>
+        `).join('');
+    }
+    
+    executeSearchAction(action) {
+        this.hideSearch();
+        action();
     }
     
     toggleTheme() {
@@ -181,29 +326,34 @@ class FarmFlowApp {
     }
     
     updateContentForLanguage() {
-        // This would update all text content based on selected language
-        // For now, just update a few key elements
+        // Simple translation implementation
         const translations = {
             en: {
                 dashboard: 'Dashboard',
                 transactions: 'Transactions',
                 enterprises: 'Enterprises',
-                reports: 'Reports'
+                reports: 'Reports',
+                monthlyIncome: 'Monthly Income',
+                monthlyExpenses: 'Monthly Expenses',
+                netIncome: 'Net Income'
             },
             sw: {
                 dashboard: 'Dashibodi',
                 transactions: 'Miamala',
                 enterprises: 'Biashara',
-                reports: 'Ripoti'
+                reports: 'Ripoti',
+                monthlyIncome: 'Mapato ya Mwezi',
+                monthlyExpenses: 'Matumizi ya Mwezi',
+                netIncome: 'Mapato Safi'
             }
         };
         
         const trans = translations[this.currentLanguage];
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (trans[key]) {
+        Object.keys(trans).forEach(key => {
+            const elements = document.querySelectorAll(`[data-i18n="${key}"]`);
+            elements.forEach(el => {
                 el.textContent = trans[key];
-            }
+            });
         });
     }
     
@@ -224,6 +374,7 @@ class FarmFlowApp {
         
         let theme = savedTheme || (prefersDark ? 'dark' : 'light');
         document.documentElement.setAttribute('data-theme', theme);
+        this.userSettings.theme = theme;
         
         // Update icon
         const icon = document.querySelector('#themeToggle .material-icons');
@@ -233,15 +384,19 @@ class FarmFlowApp {
     checkOnlineStatus() {
         this.isOnline = navigator.onLine;
         const statusElement = document.getElementById('syncStatus');
+        const syncIcon = document.getElementById('syncIcon');
+        const syncText = document.getElementById('syncText');
         const offlineIndicator = document.getElementById('offlineIndicator');
         
         if (this.isOnline) {
-            statusElement.textContent = 'Online';
             statusElement.className = 'sync-status';
+            syncIcon.textContent = 'cloud';
+            syncText.textContent = 'Online';
             offlineIndicator.classList.remove('show');
         } else {
-            statusElement.textContent = 'Offline';
             statusElement.className = 'sync-status offline';
+            syncIcon.textContent = 'cloud_off';
+            syncText.textContent = 'Offline';
             offlineIndicator.classList.add('show');
         }
     }
@@ -249,8 +404,11 @@ class FarmFlowApp {
     handleOnline() {
         this.isOnline = true;
         this.checkOnlineStatus();
-        this.showToast('Back online. Syncing data...', 'sync');
-        this.manualSync();
+        this.showToast('Back online. Syncing data...', 'wifi');
+        
+        if (this.userSettings.autoSync && window.syncManager) {
+            window.syncManager.manualSync();
+        }
     }
     
     handleOffline() {
@@ -260,65 +418,48 @@ class FarmFlowApp {
     }
     
     async setupDatabase() {
-        // Initialize Dexie database
-        this.db = new Dexie('FarmFlowDB');
+        // Use the database class from database.js
+        // Wait for database to initialize
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        this.db.version(1).stores({
-            transactions: '++id, date, type, enterprise, category, amount, currency, synced',
-            enterprises: '++id, name, type, color, icon',
-            budgets: '++id, enterprise, month, year, amount, spent',
-            syncQueue: '++id, action, table, data, timestamp'
-        });
-        
-        // Initialize with sample data if empty
-        const count = await this.db.transactions.count();
-        if (count === 0) {
-            await this.initializeSampleData();
+        if (window.database) {
+            console.log('Database initialized via database.js');
+        } else {
+            console.error('Database not initialized');
         }
     }
     
-    async initializeSampleData() {
-        // Add sample enterprises
-        await this.db.enterprises.bulkPut(this.enterprises);
-        
-        // Add sample transactions
-        const sampleTransactions = [
-            {
-                date: new Date().toISOString().split('T')[0],
-                type: 'income',
-                enterprise: 'Dairy',
-                category: 'Milk Sales',
-                amount: 15000,
-                currency: 'KES',
-                note: 'Monthly milk sale to cooperative',
-                synced: true
-            },
-            {
-                date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-                type: 'expense',
-                enterprise: 'Crops',
-                category: 'Fertilizer',
-                amount: 5000,
-                currency: 'KES',
-                note: 'Fertilizer for maize field',
-                synced: true
-            }
-        ];
-        
-        await this.db.transactions.bulkAdd(sampleTransactions);
-    }
-    
     async loadInitialData() {
-        // Load enterprises for dropdowns
-        const enterprises = await this.db.enterprises.toArray();
-        this.enterprises = enterprises;
+        // Load enterprises
+        if (window.database) {
+            this.enterprises = await window.database.getEnterprises();
+            
+            if (this.enterprises.length === 0) {
+                // Add default enterprises
+                const defaultEnterprises = [
+                    { name: 'Dairy', type: 'dairy', color: '#2196F3', icon: 'agriculture' },
+                    { name: 'Poultry', type: 'poultry', color: '#FF9800', icon: 'egg' },
+                    { name: 'Crops', type: 'crops', color: '#4CAF50', icon: 'grass' },
+                    { name: 'Livestock', type: 'livestock', color: '#795548', icon: 'pets' }
+                ];
+                
+                for (const enterprise of defaultEnterprises) {
+                    await window.database.addEnterprise(enterprise);
+                }
+                
+                this.enterprises = await window.database.getEnterprises();
+            }
+        }
         
         // Update enterprise dropdowns
         this.updateEnterpriseDropdowns();
     }
     
     updateEnterpriseDropdowns() {
-        const enterpriseSelects = document.querySelectorAll('select[id$="Enterprise"]');
+        const enterpriseSelects = [
+            document.getElementById('transEnterprise'),
+            document.getElementById('filterEnterprise')
+        ].filter(el => el);
         
         enterpriseSelects.forEach(select => {
             // Clear existing options except first
@@ -340,6 +481,8 @@ class FarmFlowApp {
         const type = document.querySelector('.type-btn.active').getAttribute('data-type');
         const categorySelect = document.getElementById('transCategory');
         
+        if (!categorySelect) return;
+        
         // Clear existing options
         while (categorySelect.options.length > 1) {
             categorySelect.remove(1);
@@ -355,46 +498,68 @@ class FarmFlowApp {
     }
     
     async updateDashboard() {
+        if (!window.database) return;
+        
         // Calculate KPIs
-        const transactions = await this.db.transactions.toArray();
+        const transactions = await window.database.getTransactions();
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
+        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
         
         // Filter transactions for current month
-        const monthlyTransactions = transactions.filter(t => {
+        const currentMonthTransactions = transactions.filter(t => {
             const transDate = new Date(t.date);
             return transDate.getMonth() === currentMonth && 
                    transDate.getFullYear() === currentYear;
         });
         
-        // Calculate totals
-        const monthlyIncome = monthlyTransactions
+        // Filter transactions for last month
+        const lastMonthTransactions = transactions.filter(t => {
+            const transDate = new Date(t.date);
+            return transDate.getMonth() === lastMonth && 
+                   transDate.getFullYear() === lastMonthYear;
+        });
+        
+        // Calculate current month totals
+        const monthlyIncome = currentMonthTransactions
             .filter(t => t.type === 'income')
             .reduce((sum, t) => sum + t.amount, 0);
         
-        const monthlyExpense = monthlyTransactions
+        const monthlyExpense = currentMonthTransactions
             .filter(t => t.type === 'expense')
             .reduce((sum, t) => sum + t.amount, 0);
         
         const netIncome = monthlyIncome - monthlyExpense;
         
-        // Calculate overall balance (simplified)
-        const allIncome = transactions
+        // Calculate last month totals for comparison
+        const lastMonthIncome = lastMonthTransactions
             .filter(t => t.type === 'income')
             .reduce((sum, t) => sum + t.amount, 0);
         
-        const allExpense = transactions
+        const lastMonthExpense = lastMonthTransactions
             .filter(t => t.type === 'expense')
             .reduce((sum, t) => sum + t.amount, 0);
         
-        const currentBalance = allIncome - allExpense;
+        // Calculate trends
+        const incomeTrend = lastMonthIncome > 0 ? 
+            ((monthlyIncome - lastMonthIncome) / lastMonthIncome * 100).toFixed(1) : 0;
+        
+        const expenseTrend = lastMonthExpense > 0 ? 
+            ((monthlyExpense - lastMonthExpense) / lastMonthExpense * 100).toFixed(1) : 0;
         
         // Update KPI elements
         document.getElementById('monthlyIncome').textContent = `KES ${monthlyIncome.toLocaleString()}`;
         document.getElementById('monthlyExpense').textContent = `KES ${monthlyExpense.toLocaleString()}`;
         document.getElementById('netIncome').textContent = `KES ${netIncome.toLocaleString()}`;
-        document.getElementById('currentBalance').textContent = `KES ${currentBalance.toLocaleString()}`;
+        
+        // Update trends
+        document.getElementById('incomeTrend').textContent = 
+            `${incomeTrend >= 0 ? '+' : ''}${incomeTrend}% from last month`;
+        
+        document.getElementById('expenseTrend').textContent = 
+            `${expenseTrend >= 0 ? '+' : ''}${expenseTrend}% from last month`;
         
         // Update recent transactions
         this.updateRecentTransactions(transactions);
@@ -438,22 +603,26 @@ class FarmFlowApp {
     }
     
     updateIncomeChart(transactions) {
-        const ctx = document.getElementById('incomeChart').getContext('2d');
+        const ctx = document.getElementById('incomeChart');
+        if (!ctx) return;
+        
+        const ctx2d = ctx.getContext('2d');
         const last6Months = Array.from({length: 6}, (_, i) => {
             const date = new Date();
             date.setMonth(date.getMonth() - i);
             return {
                 month: date.toLocaleString('default', { month: 'short' }),
-                year: date.getFullYear()
+                year: date.getFullYear(),
+                monthIndex: date.getMonth()
             };
         }).reverse();
         
-        const incomeByMonth = last6Months.map(({month, year}) => {
+        const incomeByMonth = last6Months.map(({monthIndex, year}) => {
             const monthIncome = transactions
                 .filter(t => t.type === 'income')
                 .filter(t => {
                     const transDate = new Date(t.date);
-                    return transDate.getMonth() === new Date(`${month} 1, ${year}`).getMonth() &&
+                    return transDate.getMonth() === monthIndex &&
                            transDate.getFullYear() === year;
                 })
                 .reduce((sum, t) => sum + t.amount, 0);
@@ -464,7 +633,7 @@ class FarmFlowApp {
             this.incomeChart.destroy();
         }
         
-        this.incomeChart = new Chart(ctx, {
+        this.incomeChart = new Chart(ctx2d, {
             type: 'line',
             data: {
                 labels: last6Months.map(m => m.month),
@@ -474,7 +643,8 @@ class FarmFlowApp {
                     borderColor: '#2E7D32',
                     backgroundColor: 'rgba(46, 125, 50, 0.1)',
                     tension: 0.4,
-                    fill: true
+                    fill: true,
+                    borderWidth: 2
                 }]
             },
             options: {
@@ -509,10 +679,9 @@ class FarmFlowApp {
     
     async loadTransactions() {
         const container = document.getElementById('allTransactions');
-        const transactions = await this.db.transactions
-            .orderBy('date')
-            .reverse()
-            .toArray();
+        if (!container) return;
+        
+        const transactions = await window.database.getTransactions();
         
         if (transactions.length === 0) {
             container.innerHTML = `
@@ -522,7 +691,7 @@ class FarmFlowApp {
                     <button class="btn primary" id="addFirstTrans">Add your first transaction</button>
                 </div>
             `;
-            document.getElementById('addFirstTrans').addEventListener('click', () => this.showTransactionModal());
+            document.getElementById('addFirstTrans')?.addEventListener('click', () => this.showTransactionModal());
             return;
         }
         
@@ -533,35 +702,65 @@ class FarmFlowApp {
                     <div class="transaction-meta">
                         <span>${trans.enterprise}</span>
                         <span>${new Date(trans.date).toLocaleDateString()}</span>
-                        ${trans.note ? `<span>${trans.note}</span>` : ''}
+                        ${trans.note ? `<span class="transaction-note">${trans.note}</span>` : ''}
                     </div>
                 </div>
                 <div class="transaction-actions">
                     <div class="transaction-amount ${trans.type}">
                         ${trans.type === 'income' ? '+' : '-'} KES ${trans.amount.toLocaleString()}
                     </div>
-                    <button class="icon-btn small" onclick="app.editTransaction(${trans.id})">
+                    <button class="icon-btn small edit-transaction" data-id="${trans.id}">
                         <span class="material-icons">edit</span>
                     </button>
-                    <button class="icon-btn small" onclick="app.deleteTransaction(${trans.id})">
+                    <button class="icon-btn small delete-transaction" data-id="${trans.id}">
                         <span class="material-icons">delete</span>
                     </button>
                 </div>
             </div>
         `).join('');
+        
+        // Add event listeners for edit and delete buttons
+        document.querySelectorAll('.edit-transaction').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.target.closest('button').getAttribute('data-id');
+                this.editTransaction(parseInt(id));
+            });
+        });
+        
+        document.querySelectorAll('.delete-transaction').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.target.closest('button').getAttribute('data-id');
+                this.deleteTransaction(parseInt(id));
+            });
+        });
     }
     
     async loadEnterprises() {
         const container = document.getElementById('enterprisesList');
-        const enterprises = await this.db.enterprises.toArray();
+        if (!container) return;
+        
+        const enterprises = await window.database.getEnterprises();
+        
+        if (enterprises.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="material-icons">business</span>
+                    <p>No enterprises yet</p>
+                    <p class="empty-state-sub">Add your farm enterprises to start tracking</p>
+                    <button class="btn primary" id="addFirstEnterprise">Add your first enterprise</button>
+                </div>
+            `;
+            document.getElementById('addFirstEnterprise')?.addEventListener('click', () => this.showEnterpriseModal());
+            return;
+        }
         
         container.innerHTML = enterprises.map(ent => `
-            <div class="enterprise-card enterprise-${ent.type}">
+            <div class="enterprise-card enterprise-${ent.type}" data-id="${ent.id}">
                 <div class="enterprise-icon" style="background-color: ${ent.color}20; color: ${ent.color};">
-                    <span class="material-icons">${ent.icon}</span>
+                    <span class="material-icons">${this.getEnterpriseIcon(ent.type)}</span>
                 </div>
                 <h3>${ent.name}</h3>
-                <p>Manage your ${ent.name.toLowerCase()} enterprise</p>
+                <p>${ent.type.charAt(0).toUpperCase() + ent.type.slice(1)} enterprise</p>
                 <div class="enterprise-stats">
                     <div class="stat">
                         <span class="stat-label">This Month</span>
@@ -572,19 +771,217 @@ class FarmFlowApp {
                         <span class="stat-value">KES 0</span>
                     </div>
                 </div>
-                <button class="btn outline" onclick="app.viewEnterprise(${ent.id})">View Details</button>
             </div>
         `).join('');
+        
+        // Make enterprise cards clickable
+        document.querySelectorAll('.enterprise-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                const id = e.currentTarget.getAttribute('data-id');
+                this.viewEnterprise(parseInt(id));
+            });
+        });
     }
     
-    loadReports() {
-        // Reports are loaded via buttons
+    getEnterpriseIcon(type) {
+        const icons = {
+            dairy: 'agriculture',
+            poultry: 'egg',
+            crops: 'grass',
+            livestock: 'pets',
+            fisheries: 'water',
+            apiary: 'hive',
+            other: 'business'
+        };
+        return icons[type] || 'business';
+    }
+    
+    showReport(reportType) {
+        const reportTitle = document.getElementById('reportTitle');
+        const reportContent = document.getElementById('reportContent');
+        
+        let title = '';
+        let content = '';
+        
+        switch(reportType) {
+            case 'pl':
+                title = 'Profit & Loss Report';
+                content = this.generateProfitLossReport();
+                break;
+            case 'cashflow':
+                title = 'Cash Flow Report';
+                content = this.generateCashFlowReport();
+                break;
+            case 'seasonal':
+                title = 'Seasonal Comparison Report';
+                content = this.generateSeasonalReport();
+                break;
+            case 'roi':
+                title = 'ROI Calculator';
+                content = this.generateROIReport();
+                break;
+        }
+        
+        reportTitle.textContent = title;
+        reportContent.innerHTML = content;
+        document.getElementById('reportModal').classList.add('active');
+    }
+    
+    generateProfitLossReport() {
+        return `
+            <div class="report-section">
+                <h4>Monthly Profit & Loss</h4>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Income</th>
+                            <th>Expenses</th>
+                            <th>Net Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="plTableBody">
+                        <!-- Will be populated with JavaScript -->
+                        <tr>
+                            <td>January 2024</td>
+                            <td>KES 50,000</td>
+                            <td>KES 30,000</td>
+                            <td class="positive">KES 20,000</td>
+                        </tr>
+                        <tr>
+                            <td>February 2024</td>
+                            <td>KES 45,000</td>
+                            <td>KES 25,000</td>
+                            <td class="positive">KES 20,000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+    
+    generateCashFlowReport() {
+        return `
+            <div class="report-section">
+                <h4>Cash Flow Statement</h4>
+                <div class="cashflow-summary">
+                    <div class="cashflow-item">
+                        <span>Opening Balance</span>
+                        <span>KES 100,000</span>
+                    </div>
+                    <div class="cashflow-item">
+                        <span>Cash Inflows</span>
+                        <span class="positive">KES 200,000</span>
+                    </div>
+                    <div class="cashflow-item">
+                        <span>Cash Outflows</span>
+                        <span class="negative">KES 150,000</span>
+                    </div>
+                    <div class="cashflow-item total">
+                        <span>Closing Balance</span>
+                        <span>KES 150,000</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    generateSeasonalReport() {
+        return `
+            <div class="report-section">
+                <h4>Seasonal Performance</h4>
+                <p>Compare harvest season vs non-harvest season performance.</p>
+                <div class="seasonal-comparison">
+                    <div class="season">
+                        <h5>Harvest Season (Jun-Aug)</h5>
+                        <p>Average Monthly Income: <strong>KES 75,000</strong></p>
+                        <p>Average Monthly Expenses: <strong>KES 40,000</strong></p>
+                        <p>Net Profit Margin: <strong class="positive">47%</strong></p>
+                    </div>
+                    <div class="season">
+                        <h5>Non-Harvest Season (Dec-Feb)</h5>
+                        <p>Average Monthly Income: <strong>KES 35,000</strong></p>
+                        <p>Average Monthly Expenses: <strong>KES 25,000</strong></p>
+                        <p>Net Profit Margin: <strong class="positive">29%</strong></p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    generateROIReport() {
+        return `
+            <div class="report-section">
+                <h4>Return on Investment Calculator</h4>
+                <div class="roi-calculator">
+                    <div class="form-group">
+                        <label>Initial Investment (KES)</label>
+                        <input type="number" id="roiInvestment" value="100000" class="roi-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Annual Revenue (KES)</label>
+                        <input type="number" id="roiRevenue" value="200000" class="roi-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Annual Costs (KES)</label>
+                        <input type="number" id="roiCosts" value="120000" class="roi-input">
+                    </div>
+                    <button class="btn primary" onclick="app.calculateROI()">Calculate ROI</button>
+                    <div class="roi-result" id="roiResult">
+                        <h5>Results:</h5>
+                        <p>Annual Net Profit: <strong id="roiNetProfit">KES 80,000</strong></p>
+                        <p>ROI: <strong id="roiPercentage" class="positive">80%</strong></p>
+                        <p>Payback Period: <strong id="roiPayback">1.25 years</strong></p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    calculateROI() {
+        const investment = parseFloat(document.getElementById('roiInvestment').value) || 0;
+        const revenue = parseFloat(document.getElementById('roiRevenue').value) || 0;
+        const costs = parseFloat(document.getElementById('roiCosts').value) || 0;
+        
+        const netProfit = revenue - costs;
+        const roiPercentage = investment > 0 ? (netProfit / investment * 100).toFixed(1) : 0;
+        const paybackPeriod = netProfit > 0 ? (investment / netProfit).toFixed(2) : 'N/A';
+        
+        document.getElementById('roiNetProfit').textContent = `KES ${netProfit.toLocaleString()}`;
+        document.getElementById('roiPercentage').textContent = `${roiPercentage}%`;
+        document.getElementById('roiPayback').textContent = `${paybackPeriod} years`;
+    }
+    
+    hideReportModal() {
+        document.getElementById('reportModal').classList.remove('active');
+    }
+    
+    printReport() {
+        window.print();
+    }
+    
+    exportReport() {
+        const reportContent = document.getElementById('reportContent').innerText;
+        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `report-${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.showToast('Report exported successfully', 'download');
     }
     
     showTransactionModal() {
         document.getElementById('transactionModal').classList.add('active');
         document.getElementById('transDate').valueAsDate = new Date();
         this.updateTransactionCategories();
+        
+        // Set default currency
+        document.getElementById('transCurrency').value = this.userSettings.currency;
     }
     
     hideTransactionModal() {
@@ -603,27 +1000,22 @@ class FarmFlowApp {
             type: type,
             enterprise: form.transEnterprise.value,
             category: form.transCategory.value,
-            amount: parseFloat(form.transAmount.value),
-            currency: 'KES',
+            amount: parseFloat(form.transAmount.value) || 0,
+            currency: form.transCurrency.value,
             note: form.transNote.value,
-            synced: this.isOnline
+            synced: this.isOnline,
+            createdAt: new Date().toISOString()
         };
         
         try {
-            await this.db.transactions.add(transaction);
+            await window.database.addTransaction(transaction);
             this.hideTransactionModal();
             this.showToast('Transaction saved successfully!', 'check_circle');
             
             // Update UI
-            if (this.currentPage === 'dashboard') {
-                this.updateDashboard();
-            } else if (this.currentPage === 'transactions') {
+            this.updateDashboard();
+            if (this.currentPage === 'transactions') {
                 this.loadTransactions();
-            }
-            
-            // Add to sync queue if offline
-            if (!this.isOnline) {
-                await this.addToSyncQueue('create', 'transactions', transaction);
             }
             
         } catch (error) {
@@ -633,120 +1025,261 @@ class FarmFlowApp {
     }
     
     async editTransaction(id) {
-        const transaction = await this.db.transactions.get(id);
+        const transaction = await window.database.getTransaction(id);
         if (transaction) {
             this.showTransactionModal();
-            // Pre-populate form with transaction data
-            // This would be implemented in a full version
+            // Populate form with transaction data
+            document.getElementById('transDate').value = transaction.date;
+            document.getElementById('transAmount').value = transaction.amount;
+            document.getElementById('transCurrency').value = transaction.currency;
+            document.getElementById('transEnterprise').value = transaction.enterprise;
+            document.getElementById('transNote').value = transaction.note || '';
+            
+            // Set type
+            const typeBtn = document.querySelector(`.type-btn[data-type="${transaction.type}"]`);
+            if (typeBtn) {
+                document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                typeBtn.classList.add('active');
+                this.updateTransactionCategories();
+                document.getElementById('transCategory').value = transaction.category;
+            }
+            
+            // Change form to update mode
+            const form = document.getElementById('transactionForm');
+            form.dataset.editId = id;
+            form.querySelector('button[type="submit"]').textContent = 'Update Transaction';
         }
     }
     
     async deleteTransaction(id) {
         if (confirm('Are you sure you want to delete this transaction?')) {
-            await this.db.transactions.delete(id);
+            await window.database.deleteTransaction(id);
             this.showToast('Transaction deleted', 'delete');
             
             // Update UI
-            if (this.currentPage === 'dashboard') {
-                this.updateDashboard();
-            } else if (this.currentPage === 'transactions') {
+            this.updateDashboard();
+            if (this.currentPage === 'transactions') {
                 this.loadTransactions();
             }
-            
-            // Add to sync queue if offline
-            if (!this.isOnline) {
-                await this.addToSyncQueue('delete', 'transactions', { id });
-            }
         }
     }
     
-    async addToSyncQueue(action, table, data) {
-        const queueItem = {
-            action,
-            table,
-            data,
-            timestamp: new Date().toISOString()
-        };
-        
-        await this.db.syncQueue.add(queueItem);
-        this.syncQueue.push(queueItem);
-        
-        // Show sync pending indicator
-        const statusElement = document.getElementById('syncStatus');
-        statusElement.textContent = 'Sync Pending';
-        statusElement.className = 'sync-status syncing';
+    toggleTransactionFilters() {
+        const filters = document.getElementById('transactionFilters');
+        filters.style.display = filters.style.display === 'none' ? 'block' : 'none';
     }
     
-    async manualSync() {
-        if (!this.isOnline) {
-            this.showToast('Cannot sync while offline', 'wifi_off');
-            return;
-        }
+    clearTransactionFilters() {
+        document.getElementById('filterEnterprise').value = '';
+        document.getElementById('filterType').value = '';
+        document.getElementById('filterDateFrom').value = '';
+        document.getElementById('filterDateTo').value = '';
+        document.getElementById('filterSearch').value = '';
         
-        const statusElement = document.getElementById('syncStatus');
-        statusElement.textContent = 'Syncing...';
-        statusElement.className = 'sync-status syncing';
-        
-        this.showToast('Syncing data...', 'sync');
-        
-        // Simulate sync delay
-        setTimeout(async () => {
-            // In a real app, this would sync with Firebase
-            const queueItems = await this.db.syncQueue.toArray();
-            
-            if (queueItems.length === 0) {
-                statusElement.textContent = 'Online';
-                statusElement.className = 'sync-status';
-                this.showToast('Data is up to date', 'check_circle');
-                return;
-            }
-            
-            // Clear sync queue
-            await this.db.syncQueue.clear();
-            this.syncQueue = [];
-            
-            // Mark transactions as synced
-            await this.db.transactions.toCollection().modify({ synced: true });
-            
-            statusElement.textContent = 'Online';
-            statusElement.className = 'sync-status';
-            this.showToast('Sync completed successfully!', 'check_circle');
-            
-            // Refresh data
-            if (this.currentPage === 'dashboard') {
-                this.updateDashboard();
-            }
-            
-        }, 1500);
+        this.loadTransactions();
     }
     
     handleQuickAction(action) {
+        this.showTransactionModal();
+        
         switch(action) {
-            case 'add-income':
-                this.showTransactionModal();
-                document.querySelectorAll('.type-btn')[0].click();
-                break;
-            case 'add-expense':
-                this.showTransactionModal();
-                document.querySelectorAll('.type-btn')[1].click();
-                break;
             case 'sell-produce':
-                this.showTransactionModal();
                 document.querySelectorAll('.type-btn')[0].click();
                 document.getElementById('transCategory').value = 'Crop Sales';
                 break;
+            case 'buy-feed':
+                document.querySelectorAll('.type-btn')[1].click();
+                document.getElementById('transCategory').value = 'Animal Feed';
+                break;
             case 'record-payment':
-                this.showTransactionModal();
                 document.querySelectorAll('.type-btn')[0].click();
                 document.getElementById('transCategory').value = 'Other Income';
                 break;
+            case 'pay-wages':
+                document.querySelectorAll('.type-btn')[1].click();
+                document.getElementById('transCategory').value = 'Labor';
+                break;
         }
+    }
+    
+    showEnterpriseModal() {
+        document.getElementById('enterpriseModal').classList.add('active');
+        
+        // Set up color picker
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+                e.target.classList.add('selected');
+                document.getElementById('enterpriseColor').value = e.target.getAttribute('data-color');
+            });
+        });
+        
+        // Select first color by default
+        document.querySelector('.color-option').classList.add('selected');
+    }
+    
+    hideEnterpriseModal() {
+        document.getElementById('enterpriseModal').classList.remove('active');
+        document.getElementById('enterpriseForm').reset();
+    }
+    
+    async saveEnterprise(e) {
+        if (e) e.preventDefault();
+        
+        const form = document.getElementById('enterpriseForm');
+        const enterprise = {
+            name: form.enterpriseName.value,
+            type: form.enterpriseType.value,
+            color: form.enterpriseColor.value,
+            description: form.enterpriseDescription.value,
+            createdAt: new Date().toISOString()
+        };
+        
+        try {
+            await window.database.addEnterprise(enterprise);
+            this.hideEnterpriseModal();
+            this.showToast('Enterprise saved successfully!', 'check_circle');
+            
+            // Refresh enterprises list
+            this.enterprises = await window.database.getEnterprises();
+            this.updateEnterpriseDropdowns();
+            if (this.currentPage === 'enterprises') {
+                this.loadEnterprises();
+            }
+            
+        } catch (error) {
+            console.error('Error saving enterprise:', error);
+            this.showToast('Error saving enterprise', 'error');
+        }
+    }
+    
+    viewEnterprise(id) {
+        console.log('Viewing enterprise:', id);
+        // In a full implementation, this would show enterprise details
+        this.showToast(`Viewing enterprise ${id}`, 'business');
+    }
+    
+    async createBackup() {
+        try {
+            const data = await window.database.exportData();
+            const encrypt = document.getElementById('encryptBackup').checked;
+            const password = document.getElementById('backupPassword').value;
+            
+            let backupData = data;
+            if (encrypt && password) {
+                // Simple base64 "encryption" for demo
+                backupData = btoa(JSON.stringify({
+                    encrypted: true,
+                    data: btoa(data),
+                    timestamp: new Date().toISOString()
+                }));
+            }
+            
+            const blob = new Blob([backupData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `farmflow-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            this.showToast('Backup created successfully!', 'cloud_download');
+            
+        } catch (error) {
+            console.error('Error creating backup:', error);
+            this.showToast('Error creating backup', 'error');
+        }
+    }
+    
+    handleRestoreFile(e) {
+        const file = e.target.files[0];
+        if (file) {
+            document.getElementById('restoreBackup').disabled = false;
+            this.restoreFile = file;
+        }
+    }
+    
+    async restoreBackup() {
+        if (!this.restoreFile) return;
+        
+        try {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                let data = e.target.result;
+                
+                // Check if encrypted
+                if (data.startsWith('eyJ')) { // Simple check for JSON encoded in base64
+                    try {
+                        const decoded = JSON.parse(atob(data));
+                        if (decoded.encrypted) {
+                            // For demo, we'll just decode from base64
+                            data = atob(decoded.data);
+                        }
+                    } catch (err) {
+                        // Not encrypted in our format
+                    }
+                }
+                
+                await window.database.importData(data);
+                this.showToast('Data restored successfully!', 'cloud_upload');
+                
+                // Refresh app
+                await this.loadInitialData();
+                this.updateDashboard();
+                
+                if (this.currentPage === 'enterprises') {
+                    this.loadEnterprises();
+                } else if (this.currentPage === 'transactions') {
+                    this.loadTransactions();
+                }
+                
+                // Reset file input
+                document.getElementById('restoreFile').value = '';
+                document.getElementById('restoreBackup').disabled = true;
+                this.restoreFile = null;
+            };
+            reader.readAsText(this.restoreFile);
+            
+        } catch (error) {
+            console.error('Error restoring backup:', error);
+            this.showToast('Error restoring backup', 'error');
+        }
+    }
+    
+    loadSettings() {
+        document.getElementById('userNameInput').value = this.userSettings.name;
+        document.getElementById('defaultCurrency').value = this.userSettings.currency;
+        document.getElementById('themeSelect').value = this.userSettings.theme;
+        document.getElementById('autoSync').checked = this.userSettings.autoSync;
+    }
+    
+    updateUserName(name) {
+        this.userSettings.name = name;
+        this.saveUserSettings();
+        document.getElementById('userName').textContent = name;
+    }
+    
+    updateCurrency(currency) {
+        this.userSettings.currency = currency;
+        this.saveUserSettings();
+    }
+    
+    updateThemeSetting(theme) {
+        if (theme === 'auto') {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            theme = prefersDark ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', theme);
+        this.userSettings.theme = theme;
+        this.saveUserSettings();
     }
     
     showToast(message, icon = 'info') {
         const toast = document.getElementById('syncToast');
-        const iconElement = document.getElementById('syncIcon');
-        const messageElement = document.getElementById('syncMessage');
+        const iconElement = document.getElementById('syncToastIcon');
+        const messageElement = document.getElementById('syncToastMessage');
         
         iconElement.textContent = icon;
         messageElement.textContent = message;
@@ -785,17 +1318,52 @@ class FarmFlowApp {
         // Show custom install prompt
         if (this.deferredPrompt) {
             this.showToast('Install FarmFlow for quick access!', 'download');
-            // Could add a custom install button here
         }
     }
     
-    viewEnterprise(id) {
-        // Navigate to enterprise details
-        console.log('View enterprise:', id);
+    // Placeholder methods for other pages
+    async loadBudgets() {
+        console.log('Loading budgets...');
+        // Implementation for budgets page
+    }
+    
+    async loadInvoices() {
+        console.log('Loading invoices...');
+        // Implementation for invoices page
+    }
+    
+    async loadAssets() {
+        console.log('Loading assets...');
+        // Implementation for assets page
+    }
+    
+    async loadLoans() {
+        console.log('Loading loans...');
+        // Implementation for loans page
     }
 }
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new FarmFlowApp();
+    
+    // Set up enterprise form submission
+    document.getElementById('enterpriseForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        window.app.saveEnterprise(e);
+    });
+    
+    // Set up enterprise modal close buttons
+    document.getElementById('closeEnterpriseModal')?.addEventListener('click', () => {
+        window.app.hideEnterpriseModal();
+    });
+    
+    document.getElementById('cancelEnterprise')?.addEventListener('click', () => {
+        window.app.hideEnterpriseModal();
+    });
+    
+    // Set up encryption checkbox
+    document.getElementById('encryptBackup')?.addEventListener('change', (e) => {
+        document.getElementById('backupPassword').disabled = !e.target.checked;
+    });
 });
