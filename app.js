@@ -299,17 +299,23 @@ class FarmFlowApp {
 
     toggleSideNav() {
         const sideNav = document.getElementById('side-nav');
-        sideNav.classList.toggle('active');
+        const overlay = document.querySelector('.nav-overlay');
         
-        // Add overlay when nav is open
         if (sideNav.classList.contains('active')) {
-            this.createOverlay();
+            // Close sidebar
+            sideNav.classList.remove('active');
+            if (overlay) overlay.remove();
         } else {
-            this.removeOverlay();
+            // Open sidebar
+            sideNav.classList.add('active');
+            this.createOverlay();
         }
     }
-
+    
     createOverlay() {
+        // Remove existing overlay
+        this.removeOverlay();
+        
         const overlay = document.createElement('div');
         overlay.className = 'nav-overlay';
         overlay.style.cssText = `
@@ -318,17 +324,23 @@ class FarmFlowApp {
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
             z-index: 150;
-            animation: fadeIn 0.3s ease;
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
         `;
+        
         overlay.addEventListener('click', () => this.toggleSideNav());
         document.body.appendChild(overlay);
     }
-
+    
     removeOverlay() {
         const overlay = document.querySelector('.nav-overlay');
-        if (overlay) overlay.remove();
+        if (overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 300);
+        }
     }
 
     async setupRouting() {
