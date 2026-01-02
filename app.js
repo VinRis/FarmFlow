@@ -903,3 +903,45 @@ class FarmFlowApp {
 document.addEventListener('DOMContentLoaded', () => {
     window.farmFlow = new FarmFlowApp();
 });
+
+// Debug helper
+window.debugFarmFlow = {
+    showState: () => {
+        console.log('🏗️ FarmFlow Debug State:');
+        console.log('Current Page:', window.farmFlow?.currentPage);
+        console.log('Database:', window.db?.db ? 'Loaded' : 'Not loaded');
+        console.log('UI:', window.ui ? 'Loaded' : 'Not loaded');
+        console.log('Calculators:', window.calculators ? 'Loaded' : 'Not loaded');
+        console.log('Sync:', window.sync ? 'Loaded' : 'Not loaded');
+        
+        // Check if elements exist
+        const elements = ['side-nav', 'current-date', 'transactions-container', 'calculator-display'];
+        elements.forEach(id => {
+            const el = document.getElementById(id);
+            console.log(`Element #${id}:`, el ? 'Found' : 'Not found');
+        });
+    },
+    
+    fixSidebar: () => {
+        const sideNav = document.getElementById('side-nav');
+        if (sideNav) {
+            sideNav.style.left = '0';
+            console.log('✅ Sidebar fixed');
+        }
+    },
+    
+    testCalculators: () => {
+        if (window.calculators) {
+            window.calculators.showCalculator('poultry');
+            console.log('✅ Testing poultry calculator');
+        }
+    }
+};
+
+// Add keyboard shortcuts for debugging
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+        e.preventDefault();
+        window.debugFarmFlow.showState();
+    }
+});
