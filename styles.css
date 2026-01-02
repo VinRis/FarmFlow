@@ -1487,3 +1487,32 @@ input[type="number"] {
         break-inside: avoid;
     }
 }
+
+/* Sidebar Overlay */
+.nav-overlay {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .nav-overlay {
+        display: block;
+    }
+}
+
+/* Active sidebar state */
+.side-nav.active {
+    left: 0 !important;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Ensure sidebar is visible */
+.side-nav {
+    left: -320px;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Close button hover effect */
+.close-nav:hover {
+    transform: rotate(90deg);
+    background: rgba(0, 0, 0, 0.1);
+}
