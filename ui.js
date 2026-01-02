@@ -293,6 +293,7 @@ class FarmFlowUI {
         });
     }
 
+    // In ui.js, update the createTransactionCard method:
     createTransactionCard(transaction) {
         const date = new Date(transaction.date);
         const formattedDate = date.toLocaleDateString('en-US', {
@@ -302,7 +303,7 @@ class FarmFlowUI {
         });
         
         const isIncome = transaction.type === 'income';
-        const amountClass = isIncome ? 'amount income' : 'amount expense';
+        const amountClass = isIncome ? 'income' : 'expense';
         const amountPrefix = isIncome ? '+' : '-';
         const icon = isIncome ? 'south_west' : 'north_east';
         
@@ -315,7 +316,7 @@ class FarmFlowUI {
         };
         
         return `
-            <div class="transaction-card glass-card" data-id="${transaction.id}">
+            <div class="transaction-card glass-card ${transaction.type}" data-id="${transaction.id}">
                 <div class="transaction-header">
                     <div class="transaction-type ${transaction.type}">
                         <span class="material-icons-round">${icon}</span>
@@ -340,10 +341,8 @@ class FarmFlowUI {
                         </div>
                     </div>
                     
-                    <div class="transaction-amount">
-                        <span class="${amountClass}">
-                            ${amountPrefix}$${Math.abs(transaction.amount).toFixed(2)}
-                        </span>
+                    <div class="transaction-amount ${amountClass}">
+                        ${amountPrefix}$${Math.abs(transaction.amount).toFixed(2)}
                     </div>
                 </div>
                 
@@ -353,7 +352,7 @@ class FarmFlowUI {
                         <span>${this.formatPaymentMethod(transaction.payment_method)}</span>
                     </div>
                     <div class="transaction-actions">
-                        <button class="btn-icon" onclick="this.closest('.transaction-card').classList.toggle('expanded')">
+                        <button class="btn-icon toggle-details" onclick="this.closest('.transaction-card').classList.toggle('expanded')">
                             <span class="material-icons-round">expand_more</span>
                         </button>
                         <button class="btn-icon" onclick="window.ui.editTransaction('${transaction.id}')">
@@ -375,37 +374,53 @@ class FarmFlowUI {
                     
                     <div class="transaction-meta">
                         <span>Created: ${new Date(transaction.created_at).toLocaleDateString()}</span>
-                        <span>${transaction.synced ? '✓ Synced' : '⚠ Pending Sync'}</span>
+                        <span class="${transaction.synced ? 'synced' : 'pending'}">
+                            ${transaction.synced ? '✓ Synced' : '⚠ Pending Sync'}
+                        </span>
                     </div>
                 </div>
             </div>
         `;
     }
-
+    
+    // Add CSS for sync status
     updateRecentTransactions(transactions) {
         const container = document.getElementById('recent-transactions');
         if (!container) return;
         
-        if (transactions.length === 0) {
+        if (!transactions || transactions.length === 0) {
+            container.innerHTML = `
+                <div class="empty-transactions">
+                    <span class="material-icons-round">receipt_long</span>
+                    <h3>No Recent Transactions</h3>
+                    <p>Add your first transaction to get started</p>
+                    <button class="btn btn-primary" onclick="window.farmFlow.showTransactionForm()">
+                        Add Transaction
+                    </button>
+                </div>
+            `;
             return;
         }
         
-        const html = transactions.slice(0, 5).map(transaction => `
-            <div class="recent-transaction">
-                <div class="recent-transaction-icon ${transaction.type}">
-                    <span class="material-icons-round">
-                        ${transaction.type === 'income' ? 'south_west' : 'north_east'}
-                    </span>
+        const html = transactions.map(transaction => {
+            const isIncome = transaction.type === 'income';
+            const icon = isIncome ? 'south_west' : 'north_east';
+            
+            return `
+                <div class="recent-transaction">
+                    <div class="recent-transaction-icon ${transaction.type}">
+                        <span class="material-icons-round">${icon}</span>
+                    </div>
+                    <div class="recent-transaction-info">
+                        <h4>${transaction.description}</h4>
+                        <p>${this.formatEnterprise(transaction.enterprise)} • ${this.formatCategory(transaction.category)}</p>
+                    </div>
+                    <div class="recent-transaction-amount ${transaction.type}">
+                        ${isIncome ? '+' : '-'}$${Math.abs(transaction.amount).toFixed(2)}
+                    </div>
                 </div>
-                <div class="recent-transaction-info">
-                    <h4>${transaction.description}</h4>
-                    <p>${this.formatEnterprise(transaction.enterprise)} • ${this.formatCategory(transaction.category)}</p>
-                </div>
-                <div class="recent-transaction-amount ${transaction.type}">
-                    ${transaction.type === 'income' ? '+' : '-'}$${Math.abs(transaction.amount).toFixed(2)}
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
         
         container.innerHTML = html;
     }
