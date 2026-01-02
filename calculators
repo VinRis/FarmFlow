@@ -71,37 +71,91 @@ class FarmFlowCalculators {
     }
 
     showCalculator(type) {
+        console.log(`📱 Opening calculator: ${type}`);
+        
+        // Navigate to calculators page first
+        if (window.farmFlow) {
+            window.farmFlow.navigateTo('calculators').then(() => {
+                // Wait for page transition
+                setTimeout(() => {
+                    this.displayCalculator(type);
+                }, 100);
+            });
+        } else {
+            this.displayCalculator(type);
+        }
+    }
+    
+    displayCalculator(type) {
         this.currentCalculator = type;
         
-        const display = document.getElementById('calculator-display');
-        if (!display) return;
+        // Update active state in navigation
+        document.querySelectorAll('.nav-item[data-page="calculators"]').forEach(item => {
+            item.classList.add('active');
+        });
         
-        // Scroll to calculator
-        display.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        // Update bottom nav
+        document.querySelectorAll('.nav-btn[data-page="calculators"]').forEach(btn => {
+            btn.classList.add('active');
+        });
+        
+        const display = document.getElementById('calculator-display');
+        if (!display) {
+            console.error('Calculator display element not found');
+            return;
+        }
+        
+        // Remove empty state class
+        display.classList.remove('empty-calculator');
+        
+        // Scroll to calculator display
+        display.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Clear previous calculator
+        display.innerHTML = '';
+        
+        // Create calculator based on type
+        let calculatorHtml = '';
         
         switch(type) {
             case 'poultry':
-                display.innerHTML = this.createPoultryCalculator();
+                calculatorHtml = this.createPoultryCalculator();
                 break;
             case 'dairy':
-                display.innerHTML = this.createDairyCalculator();
+                calculatorHtml = this.createDairyCalculator();
                 break;
             case 'crops':
-                display.innerHTML = this.createCropCalculator();
+                calculatorHtml = this.createCropCalculator();
                 break;
             case 'livestock':
-                display.innerHTML = this.createLivestockCalculator();
+                calculatorHtml = this.createLivestockCalculator();
                 break;
             case 'feed':
-                display.innerHTML = this.createFeedCalculator();
+                calculatorHtml = this.createFeedCalculator();
                 break;
             case 'profit':
-                display.innerHTML = this.createProfitCalculator();
+                calculatorHtml = this.createProfitCalculator();
                 break;
+            default:
+                calculatorHtml = '<div class="calculator-error"><p>Calculator not found</p></div>';
         }
         
-        // Initialize calculator
+        display.innerHTML = calculatorHtml;
+        
+        // Initialize calculator with saved data
         this.initializeCalculator(type);
+        
+        // Add animation
+        display.style.opacity = '0';
+        display.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            display.style.transition = 'all 0.3s ease';
+            display.style.opacity = '1';
+            display.style.transform = 'translateY(0)';
+        }, 50);
+        
+        console.log(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} calculator loaded`);
     }
 
     createPoultryCalculator() {
