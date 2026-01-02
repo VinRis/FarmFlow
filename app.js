@@ -5,32 +5,144 @@ class FarmFlowApp {
         this.currentTheme = localStorage.getItem('theme') || 'light';
         this.isOnline = navigator.onLine;
         this.pendingSync = false;
-        this.init();
+        
+        // Check for required dependencies
+        this.checkDependencies().then(() => {
+            this.init().catch(error => {
+                console.error('App initialization failed:', error);
+                this.showErrorWithRetry('Failed to initialize application. Please check your browser compatibility.');
+            });
+        }).catch(error => {
+            this.showErrorWithRetry('Required dependencies are missing. Please check your internet connection.');
+        });
+    }
+
+    async checkDependencies() {
+        // Check if Dexie is available
+        if (typeof Dexie === 'undefined') {
+            throw new Error('Dexie.js is not loaded. Please check internet connection.');
+        }
+        
+        // Check if Chart.js is available
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js not loaded, charts will be disabled');
+        }
+        
+        return true;
     }
 
     async init() {
         try {
-            // Wait for splash screen
+            console.log('🚜 Starting FarmFlow initialization...');
+            
+            // Show splash screen
             await this.showSplashScreen();
             
-            // Initialize components
-            await this.initializeApp();
+            // Initialize database first
+            console.log('📦 Initializing database...');
+            await window.db.initialize();
+            
+            // Initialize other components
+            console.log('🎨 Initializing UI components...');
+            window.ui.initialize();
+            
+            // Initialize sync manager
+            console.log('🔄 Initializing sync manager...');
+            await window.sync.initialize();
             
             // Set up event listeners
             this.setupEventListeners();
             
             // Load initial data
+            console.log('📊 Loading initial data...');
             await this.loadInitialData();
+            
+            // Set up routing
+            this.setupRouting();
             
             // Check sync status
             this.checkSyncStatus();
             
-            console.log('🚜 FarmFlow initialized successfully');
+            console.log('✅ FarmFlow initialized successfully');
+            
         } catch (error) {
             console.error('❌ Failed to initialize app:', error);
-            this.showError('Failed to initialize application. Please refresh the page.');
+            this.showErrorWithRetry('Failed to initialize application. Please refresh the page.');
         }
     }
+
+    showErrorWithRetry(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-overlay';
+        errorDiv.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+            color: white;
+            text-align: center;
+        `;
+        
+        errorDiv.innerHTML = `
+            <div class="error-content" style="max-width: 500px;">
+                <div style="font-size: 4rem; margin-bottom: 20px;">🚜</div>
+                <h2 style="margin-bottom: 20px;">FarmFlow Error</h2>
+                <p style="margin-bottom: 30px; font-size: 16px; opacity: 0.9;">${message}</p>
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <button onclick="location.reload()" style="
+                        padding: 12px 24px;
+                        background: white;
+                        color: #2E7D32;
+                        border: none;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: transform 0.2s;
+                    " onmouseover="this.style.transform='scale(1.05)'" 
+                     onmouseout="this.style.transform='scale(1)'">
+                        🔄 Refresh Page
+                    </button>
+                    <button onclick="this.closest('.error-overlay').remove(); 
+                                     document.querySelector('.splash-screen').style.display = 'none';
+                                     document.querySelector('.app-container').style.opacity = '1';" 
+                     style="
+                        padding: 12px 24px;
+                        background: transparent;
+                        color: white;
+                        border: 2px solid white;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    " onmouseover="this.style.background='rgba(255,255,255,0.1)'" 
+                     onmouseout="this.style.background='transparent'">
+                        Continue Anyway
+                    </button>
+                </div>
+                <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 14px;">
+                    <p style="margin-bottom: 10px;">💡 <strong>Troubleshooting Tips:</strong></p>
+                    <ul style="text-align: left; padding-left: 20px; opacity: 0.9;">
+                        <li>Make sure you have internet connection for first load</li>
+                        <li>Try using Chrome, Firefox, or Edge browser</li>
+                        <li>Clear browser cache and try again</li>
+                        <li>Enable JavaScript in your browser</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(errorDiv);
+    }
+
+    // Rest of your existing methods remain the same...
+    // Only add this new method and modify constructor/init
 
     async showSplashScreen() {
         return new Promise(resolve => {
