@@ -275,13 +275,27 @@ class FarmFlowApp {
     updateDate() {
         const now = new Date();
         const options = { 
-            weekday: 'long', 
+            weekday: 'short', 
             year: 'numeric', 
-            month: 'long', 
+            month: 'short', 
             day: 'numeric' 
         };
-        document.getElementById('current-date').textContent = 
-            now.toLocaleDateString('en-US', options);
+        //
+        const shortOptions = {
+            month: 'short',
+            day: 'numeric'
+        };
+        //
+        const dateElement = document.getElementById('current-date');
+        if (dateElement){
+            if(window.innerWidth<=480){
+                dateElement.textContent=now.toLocaleDateString('en-US',shortOptions);
+            }else{
+                dateElement.textContent=now.toLocaleDateString('en-US',options);
+            }
+        }
+        //
+        setTimeout(()=>this.updateDate(),60000);
     }
 
     applyTheme() {
