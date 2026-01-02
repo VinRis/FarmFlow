@@ -689,32 +689,27 @@ class FarmFlowApp {
         }, 1000);
     }
 
+// Update handleQuickAction method:
     handleQuickAction(action) {
+        console.log(`🔘 Quick action: ${action}`);
+        
         switch(action) {
             case 'poultry':
-                this.navigateTo('calculators');
-                setTimeout(() => {
-                    window.calculators.showCalculator('poultry');
-                }, 300);
-                break;
             case 'dairy':
-                this.navigateTo('calculators');
-                setTimeout(() => {
-                    window.calculators.showCalculator('dairy');
-                }, 300);
-                break;
             case 'crops':
-                this.navigateTo('calculators');
-                setTimeout(() => {
-                    window.calculators.showCalculator('crops');
-                }, 300);
-                break;
             case 'livestock':
-                this.navigateTo('calculators');
-                setTimeout(() => {
-                    window.calculators.showCalculator('livestock');
-                }, 300);
+                this.navigateTo('calculators').then(() => {
+                    setTimeout(() => {
+                        if (window.calculators) {
+                            window.calculators.showCalculator(action);
+                        } else {
+                            console.error('Calculators module not loaded');
+                            window.ui.showToast('Calculators not available', 'error');
+                        }
+                    }, 300);
+                });
                 break;
+                
             case 'add-expense':
                 this.navigateTo('transactions');
                 setTimeout(() => {
@@ -722,6 +717,7 @@ class FarmFlowApp {
                     this.updateTransactionType('expense');
                 }, 300);
                 break;
+                
             case 'add-income':
                 this.navigateTo('transactions');
                 setTimeout(() => {
@@ -729,6 +725,9 @@ class FarmFlowApp {
                     this.updateTransactionType('income');
                 }, 300);
                 break;
+                
+            default:
+                console.warn(`Unknown action: ${action}`);
         }
     }
 
