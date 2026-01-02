@@ -1,0 +1,1161 @@
+// FarmFlow Calculators Module
+class FarmFlowCalculators {
+    constructor() {
+        this.currentCalculator = null;
+        this.calculatorData = {};
+        this.init();
+    }
+
+    init() {
+        this.loadCalculators();
+        this.setupEventListeners();
+        console.log('🧮 Calculators module initialized');
+    }
+
+    async loadCalculators() {
+        const container = document.querySelector('.calculators-container');
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="calculators-grid">
+                ${this.createCalculatorCard('poultry', 'Poultry Calculator', 'Calculate poultry farm profits, feed requirements, and egg production', 'pets')}
+                ${this.createCalculatorCard('dairy', 'Dairy Calculator', 'Calculate milk production, feed costs, and breeding schedules', 'water_drop')}
+                ${this.createCalculatorCard('crops', 'Crop Calculator', 'Calculate planting costs, yield estimates, and profit margins', 'spa')}
+                ${this.createCalculatorCard('livestock', 'Livestock Calculator', 'Calculate herd management, grazing, and sales projections', 'agriculture')}
+                ${this.createCalculatorCard('feed', 'Feed Calculator', 'Calculate animal feed requirements and costs', 'restaurant')}
+                ${this.createCalculatorCard('profit', 'Profit Calculator', 'Calculate net profit, ROI, and break-even points', 'trending_up')}
+            </div>
+            
+            <div class="calculator-display" id="calculator-display">
+                <div class="empty-calculator">
+                    <span class="material-icons-round">calculate</span>
+                    <h3>Select a Calculator</h3>
+                    <p>Choose a calculator from the grid above to get started</p>
+                </div>
+            </div>
+        `;
+        
+        // Add click handlers to calculator cards
+        document.querySelectorAll('.calculator-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const type = card.getAttribute('data-type');
+                this.showCalculator(type);
+            });
+        });
+    }
+
+    createCalculatorCard(type, title, description, icon) {
+        return `
+            <div class="calculator-card glass-card" data-type="${type}">
+                <div class="calculator-icon ${type}">
+                    <span class="material-icons-round">${icon}</span>
+                </div>
+                <h3>${title}</h3>
+                <p>${description}</p>
+                <button class="btn btn-primary calculator-select" data-type="${type}">
+                    <span class="material-icons-round">calculate</span>
+                    Open Calculator
+                </button>
+            </div>
+        `;
+    }
+
+    setupEventListeners() {
+        // Calculator selection
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.calculator-select')) {
+                const type = e.target.closest('.calculator-select').getAttribute('data-type');
+                this.showCalculator(type);
+            }
+        });
+    }
+
+    showCalculator(type) {
+        this.currentCalculator = type;
+        
+        const display = document.getElementById('calculator-display');
+        if (!display) return;
+        
+        // Scroll to calculator
+        display.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        switch(type) {
+            case 'poultry':
+                display.innerHTML = this.createPoultryCalculator();
+                break;
+            case 'dairy':
+                display.innerHTML = this.createDairyCalculator();
+                break;
+            case 'crops':
+                display.innerHTML = this.createCropCalculator();
+                break;
+            case 'livestock':
+                display.innerHTML = this.createLivestockCalculator();
+                break;
+            case 'feed':
+                display.innerHTML = this.createFeedCalculator();
+                break;
+            case 'profit':
+                display.innerHTML = this.createProfitCalculator();
+                break;
+        }
+        
+        // Initialize calculator
+        this.initializeCalculator(type);
+    }
+
+    createPoultryCalculator() {
+        return `
+            <div class="calculator-form glass-card">
+                <div class="calculator-header">
+                    <h3><span class="material-icons-round">pets</span> Poultry Farm Calculator</h3>
+                    <p>Calculate profits, feed requirements, and production costs for poultry farming</p>
+                </div>
+                
+                <div class="calculator-grid">
+                    <div class="input-group">
+                        <label for="poultry-birds">
+                            <span class="material-icons-round">numbers</span>
+                            Number of Birds
+                        </label>
+                        <input type="number" id="poultry-birds" min="1" value="100" placeholder="Enter number of birds">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="poultry-breed">
+                            <span class="material-icons-round">category</span>
+                            Bird Type
+                        </label>
+                        <select id="poultry-breed">
+                            <option value="broiler">Broiler Chickens</option>
+                            <option value="layer">Layer Chickens</option>
+                            <option value="indigenous">Indigenous/Free-range</option>
+                            <option value="turkey">Turkeys</option>
+                            <option value="ducks">Ducks</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="poultry-age">
+                            <span class="material-icons-round">calendar_today</span>
+                            Age (weeks)
+                        </label>
+                        <input type="number" id="poultry-age" min="1" max="52" value="8" placeholder="Age in weeks">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="poultry-feed">
+                            <span class="material-icons-round">restaurant</span>
+                            Feed per Bird (kg/day)
+                        </label>
+                        <input type="number" id="poultry-feed" step="0.01" value="0.12" placeholder="kg per bird per day">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="poultry-feed-price">
+                            <span class="material-icons-round">attach_money</span>
+                            Feed Price (per kg)
+                        </label>
+                        <input type="number" id="poultry-feed-price" step="0.01" value="0.5" placeholder="Price per kg">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="poultry-egg-production">
+                            <span class="material-icons-round">egg</span>
+                            Egg Production Rate (%)
+                        </label>
+                        <input type="number" id="poultry-egg-production" min="0" max="100" value="85" placeholder="Percentage">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="poultry-egg-price">
+                            <span class="material-icons-round">attach_money</span>
+                            Egg Price (per egg)
+                        </label>
+                        <input type="number" id="poultry-egg-price" step="0.01" value="0.15" placeholder="Price per egg">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="poultry-meat-price">
+                            <span class="material-icons-round">attach_money</span>
+                            Meat Price (per kg)
+                        </label>
+                        <input type="number" id="poultry-meat-price" step="0.01" value="3.5" placeholder="Price per kg">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="poultry-weight">
+                            <span class="material-icons-round">scale</span>
+                            Average Weight (kg)
+                        </label>
+                        <input type="number" id="poultry-weight" step="0.01" value="2.5" placeholder="Average weight in kg">
+                    </div>
+                </div>
+                
+                <div class="calculator-actions">
+                    <button class="btn btn-outline" onclick="window.calculators.resetCalculator('poultry')">
+                        <span class="material-icons-round">refresh</span>
+                        Reset
+                    </button>
+                    <button class="btn btn-primary" onclick="window.calculators.calculatePoultry()">
+                        <span class="material-icons-round">calculate</span>
+                        Calculate
+                    </button>
+                </div>
+                
+                <div class="calculator-results" id="poultry-results">
+                    <!-- Results will be displayed here -->
+                </div>
+            </div>
+        `;
+    }
+
+    createDairyCalculator() {
+        return `
+            <div class="calculator-form glass-card">
+                <div class="calculator-header">
+                    <h3><span class="material-icons-round">water_drop</span> Dairy Farm Calculator</h3>
+                    <p>Calculate milk production, feed costs, and profitability for dairy farming</p>
+                </div>
+                
+                <div class="calculator-grid">
+                    <div class="input-group">
+                        <label for="dairy-cows">
+                            <span class="material-icons-round">numbers</span>
+                            Number of Cows
+                        </label>
+                        <input type="number" id="dairy-cows" min="1" value="10" placeholder="Number of milking cows">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="daily-milk">
+                            <span class="material-icons-round">water_drop</span>
+                            Daily Milk per Cow (liters)
+                        </label>
+                        <input type="number" id="daily-milk" step="0.1" value="15" placeholder="Liters per cow per day">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="milk-price">
+                            <span class="material-icons-round">attach_money</span>
+                            Milk Price (per liter)
+                        </label>
+                        <input type="number" id="milk-price" step="0.01" value="0.4" placeholder="Price per liter">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="feed-per-cow">
+                            <span class="material-icons-round">restaurant</span>
+                            Feed per Cow (kg/day)
+                        </label>
+                        <input type="number" id="feed-per-cow" step="0.1" value="12" placeholder="kg per cow per day">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="feed-price">
+                            <span class="material-icons-round">attach_money</span>
+                            Feed Price (per kg)
+                        </label>
+                        <input type="number" id="feed-price" step="0.01" value="0.3" placeholder="Price per kg">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="veterinary-cost">
+                            <span class="material-icons-round">medical_services</span>
+                            Veterinary Costs (per month)
+                        </label>
+                        <input type="number" id="veterinary-cost" step="0.01" value="100" placeholder="Monthly vet costs">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="labor-cost">
+                            <span class="material-icons-round">engineering</span>
+                            Labor Costs (per month)
+                        </label>
+                        <input type="number" id="labor-cost" step="0.01" value="500" placeholder="Monthly labor costs">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="other-costs">
+                            <span class="material-icons-round">payments</span>
+                            Other Costs (per month)
+                        </label>
+                        <input type="number" id="other-costs" step="0.01" value="200" placeholder="Other monthly costs">
+                    </div>
+                </div>
+                
+                <div class="calculator-actions">
+                    <button class="btn btn-outline" onclick="window.calculators.resetCalculator('dairy')">
+                        Reset
+                    </button>
+                    <button class="btn btn-primary" onclick="window.calculators.calculateDairy()">
+                        Calculate
+                    </button>
+                </div>
+                
+                <div class="calculator-results" id="dairy-results">
+                    <!-- Results will be displayed here -->
+                </div>
+            </div>
+        `;
+    }
+
+    createCropCalculator() {
+        return `
+            <div class="calculator-form glass-card">
+                <div class="calculator-header">
+                    <h3><span class="material-icons-round">spa</span> Crop Farming Calculator</h3>
+                    <p>Calculate planting costs, yield estimates, and profit margins for crop farming</p>
+                </div>
+                
+                <div class="calculator-grid">
+                    <div class="input-group">
+                        <label for="crop-type">
+                            <span class="material-icons-round">category</span>
+                            Crop Type
+                        </label>
+                        <select id="crop-type">
+                            <option value="maize">Maize</option>
+                            <option value="wheat">Wheat</option>
+                            <option value="rice">Rice</option>
+                            <option value="beans">Beans</option>
+                            <option value="vegetables">Vegetables</option>
+                            <option value="fruits">Fruits</option>
+                            <option value="coffee">Coffee</option>
+                            <option value="tea">Tea</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="crop-area">
+                            <span class="material-icons-round">square_foot</span>
+                            Farm Area (acres)
+                        </label>
+                        <input type="number" id="crop-area" step="0.01" value="1" placeholder="Area in acres">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="expected-yield">
+                            <span class="material-icons-round">trending_up</span>
+                            Expected Yield (kg/acre)
+                        </label>
+                        <input type="number" id="expected-yield" value="2000" placeholder="kg per acre">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="crop-price">
+                            <span class="material-icons-round">attach_money</span>
+                            Selling Price (per kg)
+                        </label>
+                        <input type="number" id="crop-price" step="0.01" value="0.3" placeholder="Price per kg">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="seed-cost">
+                            <span class="material-icons-round">spa</span>
+                            Seed Costs (per acre)
+                        </label>
+                        <input type="number" id="seed-cost" step="0.01" value="50" placeholder="Cost per acre">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="fertilizer-cost">
+                            <span class="material-icons-round">grass</span>
+                            Fertilizer Costs (per acre)
+                        </label>
+                        <input type="number" id="fertilizer-cost" step="0.01" value="100" placeholder="Cost per acre">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="pesticide-cost">
+                            <span class="material-icons-round">bug_report</span>
+                            Pesticide Costs (per acre)
+                        </label>
+                        <input type="number" id="pesticide-cost" step="0.01" value="30" placeholder="Cost per acre">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="labor-cost-crop">
+                            <span class="material-icons-round">engineering</span>
+                            Labor Costs (per acre)
+                        </label>
+                        <input type="number" id="labor-cost-crop" step="0.01" value="150" placeholder="Cost per acre">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="other-costs-crop">
+                            <span class="material-icons-round">payments</span>
+                            Other Costs (per acre)
+                        </label>
+                        <input type="number" id="other-costs-crop" step="0.01" value="50" placeholder="Other costs per acre">
+                    </div>
+                </div>
+                
+                <div class="calculator-actions">
+                    <button class="btn btn-outline" onclick="window.calculators.resetCalculator('crops')">
+                        Reset
+                    </button>
+                    <button class="btn btn-primary" onclick="window.calculators.calculateCrops()">
+                        Calculate
+                    </button>
+                </div>
+                
+                <div class="calculator-results" id="crop-results">
+                    <!-- Results will be displayed here -->
+                </div>
+            </div>
+        `;
+    }
+
+    createLivestockCalculator() {
+        return `
+            <div class="calculator-form glass-card">
+                <div class="calculator-header">
+                    <h3><span class="material-icons-round">agriculture</span> Livestock Calculator</h3>
+                    <p>Calculate herd management, grazing, and sales projections for livestock farming</p>
+                </div>
+                
+                <div class="calculator-grid">
+                    <div class="input-group">
+                        <label for="livestock-type">
+                            <span class="material-icons-round">category</span>
+                            Livestock Type
+                        </label>
+                        <select id="livestock-type">
+                            <option value="cattle">Cattle</option>
+                            <option value="goats">Goats</option>
+                            <option value="sheep">Sheep</option>
+                            <option value="pigs">Pigs</option>
+                            <option value="rabbits">Rabbits</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="herd-size">
+                            <span class="material-icons-round">numbers</span>
+                            Herd Size
+                        </label>
+                        <input type="number" id="herd-size" min="1" value="20" placeholder="Number of animals">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="breeding-females">
+                            <span class="material-icons-round">female</span>
+                            Breeding Females
+                        </label>
+                        <input type="number" id="breeding-females" min="1" value="15" placeholder="Number of females">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="birth-rate">
+                            <span class="material-icons-round">child_care</span>
+                            Birth Rate (% per year)
+                        </label>
+                        <input type="number" id="birth-rate" min="0" max="200" value="80" placeholder="Percentage">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="mortality-rate">
+                            <span class="material-icons-round">health_and_safety</span>
+                            Mortality Rate (% per year)
+                        </label>
+                        <input type="number" id="mortality-rate" min="0" max="100" value="5" placeholder="Percentage">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="sale-price">
+                            <span class="material-icons-round">attach_money</span>
+                            Sale Price (per animal)
+                        </label>
+                        <input type="number" id="sale-price" step="0.01" value="300" placeholder="Price per animal">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="feed-cost">
+                            <span class="material-icons-round">restaurant</span>
+                            Feed Costs (per animal/month)
+                        </label>
+                        <input type="number" id="feed-cost" step="0.01" value="15" placeholder="Monthly feed cost">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="health-cost">
+                            <span class="material-icons-round">medical_services</span>
+                            Health Costs (per animal/year)
+                        </label>
+                        <input type="number" id="health-cost" step="0.01" value="20" placeholder="Yearly health cost">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="grazing-cost">
+                            <span class="material-icons-round">park</span>
+                            Grazing/Land Costs (per month)
+                        </label>
+                        <input type="number" id="grazing-cost" step="0.01" value="100" placeholder="Monthly land cost">
+                    </div>
+                </div>
+                
+                <div class="calculator-actions">
+                    <button class="btn btn-outline" onclick="window.calculators.resetCalculator('livestock')">
+                        Reset
+                    </button>
+                    <button class="btn btn-primary" onclick="window.calculators.calculateLivestock()">
+                        Calculate
+                    </button>
+                </div>
+                
+                <div class="calculator-results" id="livestock-results">
+                    <!-- Results will be displayed here -->
+                </div>
+            </div>
+        `;
+    }
+
+    createFeedCalculator() {
+        return `
+            <div class="calculator-form glass-card">
+                <div class="calculator-header">
+                    <h3><span class="material-icons-round">restaurant</span> Animal Feed Calculator</h3>
+                    <p>Calculate animal feed requirements, costs, and mixing ratios</p>
+                </div>
+                
+                <div class="calculator-grid">
+                    <div class="input-group">
+                        <label for="animal-type-feed">
+                            <span class="material-icons-round">pets</span>
+                            Animal Type
+                        </label>
+                        <select id="animal-type-feed">
+                            <option value="chicken">Chicken</option>
+                            <option value="cow">Cow</option>
+                            <option value="goat">Goat</option>
+                            <option value="sheep">Sheep</option>
+                            <option value="pig">Pig</option>
+                            <option value="rabbit">Rabbit</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="animal-count">
+                            <span class="material-icons-round">numbers</span>
+                            Number of Animals
+                        </label>
+                        <input type="number" id="animal-count" min="1" value="10" placeholder="Number of animals">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="animal-weight">
+                            <span class="material-icons-round">scale</span>
+                            Average Weight (kg)
+                        </label>
+                        <input type="number" id="animal-weight" step="0.1" value="50" placeholder="Average weight">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="feed-requirement">
+                            <span class="material-icons-round">restaurant</span>
+                            Feed Requirement (% of body weight)
+                        </label>
+                        <input type="number" id="feed-requirement" step="0.1" value="3" placeholder="Percentage">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="feeding-days">
+                            <span class="material-icons-round">calendar_today</span>
+                            Feeding Period (days)
+                        </label>
+                        <input type="number" id="feeding-days" min="1" value="30" placeholder="Number of days">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="feed-ingredient1">
+                            <span class="material-icons-round">eco</span>
+                            Ingredient 1 (%)
+                        </label>
+                        <input type="number" id="feed-ingredient1" min="0" max="100" value="60" placeholder="Percentage">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="feed-price1">
+                            <span class="material-icons-round">attach_money</span>
+                            Ingredient 1 Price (per kg)
+                        </label>
+                        <input type="number" id="feed-price1" step="0.01" value="0.4" placeholder="Price per kg">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="feed-ingredient2">
+                            <span class="material-icons-round">eco</span>
+                            Ingredient 2 (%)
+                        </label>
+                        <input type="number" id="feed-ingredient2" min="0" max="100" value="25" placeholder="Percentage">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="feed-price2">
+                            <span class="material-icons-round">attach_money</span>
+                            Ingredient 2 Price (per kg)
+                        </label>
+                        <input type="number" id="feed-price2" step="0.01" value="0.6" placeholder="Price per kg">
+                    </div>
+                </div>
+                
+                <div class="calculator-actions">
+                    <button class="btn btn-outline" onclick="window.calculators.resetCalculator('feed')">
+                        Reset
+                    </button>
+                    <button class="btn btn-primary" onclick="window.calculators.calculateFeed()">
+                        Calculate
+                    </button>
+                </div>
+                
+                <div class="calculator-results" id="feed-results">
+                    <!-- Results will be displayed here -->
+                </div>
+            </div>
+        `;
+    }
+
+    createProfitCalculator() {
+        return `
+            <div class="calculator-form glass-card">
+                <div class="calculator-header">
+                    <h3><span class="material-icons-round">trending_up</span> Profit & ROI Calculator</h3>
+                    <p>Calculate net profit, return on investment, and break-even points</p>
+                </div>
+                
+                <div class="calculator-grid">
+                    <div class="input-group">
+                        <label for="total-investment">
+                            <span class="material-icons-round">savings</span>
+                            Total Investment
+                        </label>
+                        <input type="number" id="total-investment" step="0.01" value="5000" placeholder="Total initial investment">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="monthly-income">
+                            <span class="material-icons-round">south_west</span>
+                            Monthly Income
+                        </label>
+                        <input type="number" id="monthly-income" step="0.01" value="1500" placeholder="Average monthly income">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="monthly-expenses">
+                            <span class="material-icons-round">north_east</span>
+                            Monthly Expenses
+                        </label>
+                        <input type="number" id="monthly-expenses" step="0.01" value="800" placeholder="Average monthly expenses">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="operating-months">
+                            <span class="material-icons-round">calendar_today</span>
+                            Operating Period (months)
+                        </label>
+                        <input type="number" id="operating-months" min="1" value="12" placeholder="Number of months">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="salvage-value">
+                            <span class="material-icons-round">construction</span>
+                            Salvage/Resale Value
+                        </label>
+                        <input type="number" id="salvage-value" step="0.01" value="3000" placeholder="Value at end of period">
+                    </div>
+                </div>
+                
+                <div class="calculator-actions">
+                    <button class="btn btn-outline" onclick="window.calculators.resetCalculator('profit')">
+                        Reset
+                    </button>
+                    <button class="btn btn-primary" onclick="window.calculators.calculateProfit()">
+                        Calculate
+                    </button>
+                </div>
+                
+                <div class="calculator-results" id="profit-results">
+                    <!-- Results will be displayed here -->
+                </div>
+            </div>
+        `;
+    }
+
+    initializeCalculator(type) {
+        // Load saved data if any
+        const savedData = localStorage.getItem(`calculator_${type}`);
+        if (savedData) {
+            this.calculatorData[type] = JSON.parse(savedData);
+            this.populateCalculatorFields(type);
+        }
+    }
+
+    populateCalculatorFields(type) {
+        const data = this.calculatorData[type];
+        if (!data) return;
+        
+        Object.keys(data).forEach(key => {
+            const element = document.getElementById(`${type}-${key}`);
+            if (element) {
+                element.value = data[key];
+            }
+        });
+    }
+
+    saveCalculatorData(type) {
+        const inputs = document.querySelectorAll(`#${type}-results ~ .calculator-grid input, 
+                                                 #${type}-results ~ .calculator-grid select`);
+        const data = {};
+        
+        inputs.forEach(input => {
+            const key = input.id.replace(`${type}-`, '');
+            data[key] = input.value;
+        });
+        
+        this.calculatorData[type] = data;
+        localStorage.setItem(`calculator_${type}`, JSON.stringify(data));
+    }
+
+    resetCalculator(type) {
+        const defaultValues = this.getDefaultValues(type);
+        
+        Object.keys(defaultValues).forEach(key => {
+            const element = document.getElementById(`${type}-${key}`);
+            if (element) {
+                element.value = defaultValues[key];
+            }
+        });
+        
+        // Clear results
+        const results = document.getElementById(`${type}-results`);
+        if (results) {
+            results.innerHTML = '';
+        }
+        
+        // Clear saved data
+        localStorage.removeItem(`calculator_${type}`);
+        delete this.calculatorData[type];
+        
+        window.ui.showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} calculator reset`, 'info');
+    }
+
+    getDefaultValues(type) {
+        const defaults = {
+            poultry: {
+                birds: '100',
+                breed: 'broiler',
+                age: '8',
+                feed: '0.12',
+                feedPrice: '0.5',
+                eggProduction: '85',
+                eggPrice: '0.15',
+                meatPrice: '3.5',
+                weight: '2.5'
+            },
+            dairy: {
+                cows: '10',
+                dailyMilk: '15',
+                milkPrice: '0.4',
+                feedPerCow: '12',
+                feedPrice: '0.3',
+                veterinaryCost: '100',
+                laborCost: '500',
+                otherCosts: '200'
+            },
+            crops: {
+                cropType: 'maize',
+                cropArea: '1',
+                expectedYield: '2000',
+                cropPrice: '0.3',
+                seedCost: '50',
+                fertilizerCost: '100',
+                pesticideCost: '30',
+                laborCostCrop: '150',
+                otherCostsCrop: '50'
+            },
+            livestock: {
+                livestockType: 'cattle',
+                herdSize: '20',
+                breedingFemales: '15',
+                birthRate: '80',
+                mortalityRate: '5',
+                salePrice: '300',
+                feedCost: '15',
+                healthCost: '20',
+                grazingCost: '100'
+            },
+            feed: {
+                animalTypeFeed: 'chicken',
+                animalCount: '10',
+                animalWeight: '50',
+                feedRequirement: '3',
+                feedingDays: '30',
+                feedIngredient1: '60',
+                feedPrice1: '0.4',
+                feedIngredient2: '25',
+                feedPrice2: '0.6'
+            },
+            profit: {
+                totalInvestment: '5000',
+                monthlyIncome: '1500',
+                monthlyExpenses: '800',
+                operatingMonths: '12',
+                salvageValue: '3000'
+            }
+        };
+        
+        return defaults[type] || {};
+    }
+
+    // Calculation Methods
+    calculatePoultry() {
+        const birds = parseFloat(document.getElementById('poultry-birds').value) || 0;
+        const breed = document.getElementById('poultry-breed').value;
+        const age = parseFloat(document.getElementById('poultry-age').value) || 0;
+        const feedPerBird = parseFloat(document.getElementById('poultry-feed').value) || 0;
+        const feedPrice = parseFloat(document.getElementById('poultry-feed-price').value) || 0;
+        const eggProduction = parseFloat(document.getElementById('poultry-egg-production').value) || 0;
+        const eggPrice = parseFloat(document.getElementById('poultry-egg-price').value) || 0;
+        const meatPrice = parseFloat(document.getElementById('poultry-meat-price').value) || 0;
+        const weight = parseFloat(document.getElementById('poultry-weight').value) || 0;
+        
+        // Calculations
+        const dailyFeed = birds * feedPerBird;
+        const dailyFeedCost = dailyFeed * feedPrice;
+        const monthlyFeedCost = dailyFeedCost * 30;
+        
+        let dailyEggs = 0;
+        let dailyEggIncome = 0;
+        
+        if (breed === 'layer') {
+            dailyEggs = birds * (eggProduction / 100);
+            dailyEggIncome = dailyEggs * eggPrice;
+        }
+        
+        const monthlyEggIncome = dailyEggIncome * 30;
+        
+        let meatIncome = 0;
+        if (breed === 'broiler') {
+            const meatPerBird = weight * 0.7; // 70% dressing percentage
+            meatIncome = birds * meatPerBird * meatPrice;
+        }
+        
+        const totalMonthlyIncome = monthlyEggIncome + (breed === 'broiler' ? meatIncome / 12 : 0);
+        const otherCosts = monthlyFeedCost * 0.3; // Estimate 30% for other costs
+        const totalMonthlyCosts = monthlyFeedCost + otherCosts;
+        const monthlyProfit = totalMonthlyIncome - totalMonthlyCosts;
+        const roi = (monthlyProfit * 12) / (birds * 5) * 100; // Assuming $5 per bird investment
+        
+        // Save data
+        this.saveCalculatorData('poultry');
+        
+        // Display results
+        const results = document.getElementById('poultry-results');
+        results.innerHTML = `
+            <div class="results-header">
+                <h4><span class="material-icons-round">insights</span> Poultry Farm Analysis</h4>
+                <p>Based on your inputs, here's your farm analysis:</p>
+            </div>
+            
+            <div class="results-grid">
+                <div class="result-card income">
+                    <span class="material-icons-round">south_west</span>
+                    <div class="result-content">
+                        <h5>Monthly Income</h5>
+                        <p class="result-value">$${totalMonthlyIncome.toFixed(2)}</p>
+                        ${breed === 'layer' ? `<small>From ${dailyEggs.toFixed(0)} eggs/day</small>` : ''}
+                    </div>
+                </div>
+                
+                <div class="result-card expense">
+                    <span class="material-icons-round">north_east</span>
+                    <div class="result-content">
+                        <h5>Monthly Costs</h5>
+                        <p class="result-value">$${totalMonthlyCosts.toFixed(2)}</p>
+                        <small>Feed: $${monthlyFeedCost.toFixed(2)}</small>
+                    </div>
+                </div>
+                
+                <div class="result-card profit">
+                    <span class="material-icons-round">trending_up</span>
+                    <div class="result-content">
+                        <h5>Monthly Profit</h5>
+                        <p class="result-value">$${monthlyProfit.toFixed(2)}</p>
+                        <small>${monthlyProfit >= 0 ? '✅ Profitable' : '⚠️ Loss'}</small>
+                    </div>
+                </div>
+                
+                <div class="result-card roi">
+                    <span class="material-icons-round">percent</span>
+                    <div class="result-content">
+                        <h5>Annual ROI</h5>
+                        <p class="result-value">${roi.toFixed(1)}%</p>
+                        <small>Return on Investment</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results-recommendations">
+                <h5><span class="material-icons-round">lightbulb</span> Recommendations</h5>
+                <ul>
+                    ${monthlyProfit < 0 ? '<li>Consider reducing feed costs or increasing selling prices</li>' : ''}
+                    ${feedPrice > 0.6 ? '<li>Look for cheaper feed suppliers or consider making your own feed</li>' : ''}
+                    <li>Monitor bird health regularly to reduce mortality rates</li>
+                    <li>Keep accurate records of all expenses and income</li>
+                    ${breed === 'layer' ? '<li>Collect eggs at least twice daily to maintain quality</li>' : ''}
+                </ul>
+            </div>
+            
+            <div class="results-actions">
+                <button class="btn btn-outline" onclick="window.calculators.saveAsTransaction('poultry')">
+                    <span class="material-icons-round">save</span>
+                    Save as Transaction
+                </button>
+                <button class="btn btn-primary" onclick="window.print()">
+                    <span class="material-icons-round">print</span>
+                    Print Report
+                </button>
+            </div>
+        `;
+        
+        window.ui.showToast('Poultry calculation completed', 'success');
+    }
+
+    calculateDairy() {
+        const cows = parseFloat(document.getElementById('dairy-cows').value) || 0;
+        const dailyMilk = parseFloat(document.getElementById('daily-milk').value) || 0;
+        const milkPrice = parseFloat(document.getElementById('milk-price').value) || 0;
+        const feedPerCow = parseFloat(document.getElementById('feed-per-cow').value) || 0;
+        const feedPrice = parseFloat(document.getElementById('feed-price').value) || 0;
+        const veterinaryCost = parseFloat(document.getElementById('veterinary-cost').value) || 0;
+        const laborCost = parseFloat(document.getElementById('labor-cost').value) || 0;
+        const otherCosts = parseFloat(document.getElementById('other-costs').value) || 0;
+        
+        // Calculations
+        const dailyMilkProduction = cows * dailyMilk;
+        const dailyMilkIncome = dailyMilkProduction * milkPrice;
+        const monthlyMilkIncome = dailyMilkIncome * 30;
+        
+        const dailyFeed = cows * feedPerCow;
+        const dailyFeedCost = dailyFeed * feedPrice;
+        const monthlyFeedCost = dailyFeedCost * 30;
+        
+        const totalMonthlyCosts = monthlyFeedCost + veterinaryCost + laborCost + otherCosts;
+        const monthlyProfit = monthlyMilkIncome - totalMonthlyCosts;
+        const profitPerCow = monthlyProfit / cows;
+        const roi = (monthlyProfit * 12) / (cows * 800) * 100; // Assuming $800 per cow investment
+        
+        // Save data
+        this.saveCalculatorData('dairy');
+        
+        // Display results
+        const results = document.getElementById('dairy-results');
+        results.innerHTML = this.createResultsTemplate(
+            'Dairy Farm Analysis',
+            monthlyMilkIncome,
+            totalMonthlyCosts,
+            monthlyProfit,
+            roi,
+            'dairy'
+        );
+        
+        window.ui.showToast('Dairy calculation completed', 'success');
+    }
+
+    calculateCrops() {
+        const cropType = document.getElementById('crop-type').value;
+        const area = parseFloat(document.getElementById('crop-area').value) || 0;
+        const expectedYield = parseFloat(document.getElementById('expected-yield').value) || 0;
+        const cropPrice = parseFloat(document.getElementById('crop-price').value) || 0;
+        const seedCost = parseFloat(document.getElementById('seed-cost').value) || 0;
+        const fertilizerCost = parseFloat(document.getElementById('fertilizer-cost').value) || 0;
+        const pesticideCost = parseFloat(document.getElementById('pesticide-cost').value) || 0;
+        const laborCost = parseFloat(document.getElementById('labor-cost-crop').value) || 0;
+        const otherCosts = parseFloat(document.getElementById('other-costs-crop').value) || 0;
+        
+        // Calculations
+        const totalYield = area * expectedYield;
+        const totalIncome = totalYield * cropPrice;
+        
+        const totalSeedCost = area * seedCost;
+        const totalFertilizerCost = area * fertilizerCost;
+        const totalPesticideCost = area * pesticideCost;
+        const totalLaborCost = area * laborCost;
+        const totalOtherCosts = area * otherCosts;
+        
+        const totalCosts = totalSeedCost + totalFertilizerCost + totalPesticideCost + 
+                          totalLaborCost + totalOtherCosts;
+        
+        const netProfit = totalIncome - totalCosts;
+        const profitPerAcre = netProfit / area;
+        const roi = (netProfit / totalCosts) * 100;
+        
+        // Save data
+        this.saveCalculatorData('crops');
+        
+        // Display results
+        const results = document.getElementById('crop-results');
+        results.innerHTML = this.createResultsTemplate(
+            `${cropType.charAt(0).toUpperCase() + cropType.slice(1)} Farm Analysis`,
+            totalIncome,
+            totalCosts,
+            netProfit,
+            roi,
+            'crops'
+        );
+        
+        window.ui.showToast('Crop calculation completed', 'success');
+    }
+
+    calculateLivestock() {
+        // Similar implementation for livestock
+        // Would include herd growth projections, sales timing, etc.
+    }
+
+    calculateFeed() {
+        // Similar implementation for feed
+        // Would include feed mixing ratios, cost optimization, etc.
+    }
+
+    calculateProfit() {
+        // Similar implementation for profit
+        // Would include ROI, break-even analysis, etc.
+    }
+
+    createResultsTemplate(title, income, costs, profit, roi, type) {
+        return `
+            <div class="results-header">
+                <h4><span class="material-icons-round">insights</span> ${title}</h4>
+                <p>Based on your inputs, here's your analysis:</p>
+            </div>
+            
+            <div class="results-grid">
+                <div class="result-card income">
+                    <span class="material-icons-round">south_west</span>
+                    <div class="result-content">
+                        <h5>Total Income</h5>
+                        <p class="result-value">$${income.toFixed(2)}</p>
+                    </div>
+                </div>
+                
+                <div class="result-card expense">
+                    <span class="material-icons-round">north_east</span>
+                    <div class="result-content">
+                        <h5>Total Costs</h5>
+                        <p class="result-value">$${costs.toFixed(2)}</p>
+                    </div>
+                </div>
+                
+                <div class="result-card profit">
+                    <span class="material-icons-round">trending_up</span>
+                    <div class="result-content">
+                        <h5>Net Profit</h5>
+                        <p class="result-value">$${profit.toFixed(2)}</p>
+                        <small>${profit >= 0 ? '✅ Profitable' : '⚠️ Loss'}</small>
+                    </div>
+                </div>
+                
+                <div class="result-card roi">
+                    <span class="material-icons-round">percent</span>
+                    <div class="result-content">
+                        <h5>ROI</h5>
+                        <p class="result-value">${roi.toFixed(1)}%</p>
+                        <small>Return on Investment</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results-recommendations">
+                <h5><span class="material-icons-round">lightbulb</span> Recommendations</h5>
+                <ul>
+                    ${profit < 0 ? '<li>Review your costs and consider ways to reduce expenses</li>' : ''}
+                    ${roi < 15 ? '<li>Explore ways to increase efficiency or output</li>' : ''}
+                    <li>Keep detailed records for better planning</li>
+                    <li>Consider diversifying your farm activities</li>
+                </ul>
+            </div>
+            
+            <div class="results-actions">
+                <button class="btn btn-outline" onclick="window.calculators.saveAsTransaction('${type}')">
+                    <span class="material-icons-round">save</span>
+                    Save as Transaction
+                </button>
+                <button class="btn btn-primary" onclick="window.print()">
+                    <span class="material-icons-round">print</span>
+                    Print Report
+                </button>
+            </div>
+        `;
+    }
+
+    async saveAsTransaction(calculatorType) {
+        const data = this.calculatorData[calculatorType];
+        if (!data) {
+            window.ui.showToast('No calculation data to save', 'warning');
+            return;
+        }
+        
+        // Create transaction from calculator data
+        const transaction = {
+            type: 'income',
+            amount: parseFloat(data.income || 0),
+            enterprise: calculatorType,
+            category: `${calculatorType}_sales`,
+            description: `${calculatorType.charAt(0).toUpperCase() + calculatorType.slice(1)} calculation results`,
+            date: new Date().toISOString().split('T')[0],
+            payment_method: 'cash',
+            notes: `Generated from ${calculatorType} calculator`,
+            recurring: false,
+            synced: navigator.onLine
+        };
+        
+        try {
+            await window.db.saveTransaction(transaction);
+            window.ui.showToast('Calculation saved as transaction', 'success');
+            
+            // Navigate to transactions page
+            window.farmFlow?.navigateTo('transactions');
+        } catch (error) {
+            console.error('Failed to save transaction:', error);
+            window.ui.showToast('Failed to save transaction', 'error');
+        }
+    }
+
+    // Export/Import calculator configurations
+    exportCalculatorConfig(type) {
+        const data = this.calculatorData[type];
+        if (!data) {
+            window.ui.showToast('No calculator configuration to export', 'warning');
+            return;
+        }
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `farmflow-${type}-calculator-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    importCalculatorConfig(type, file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                this.calculatorData[type] = data;
+                this.populateCalculatorFields(type);
+                window.ui.showToast('Calculator configuration imported', 'success');
+            } catch (error) {
+                window.ui.showToast('Invalid configuration file', 'error');
+            }
+        };
+        reader.readAsText(file);
+    }
+}
+
+// Initialize calculators
+window.calculators = new FarmFlowCalculators();
