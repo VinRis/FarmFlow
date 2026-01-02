@@ -1,7 +1,16 @@
-// FarmFlow Database Management
+// FarmFlow Database Management with Fallback
 class FarmFlowDatabase {
     constructor() {
-        this.db = null;
+        // Check if Dexie is available, create fallback if not
+        if (typeof Dexie === 'undefined') {
+            console.warn('Dexie not found, using localStorage fallback');
+            this.useLocalStorage = true;
+            this.db = this.createLocalStorageFallback();
+        } else {
+            this.useLocalStorage = false;
+            this.db = null;
+        }
+        
         this.dbName = 'FarmFlowDB';
         this.dbVersion = 3;
         
@@ -17,10 +26,213 @@ class FarmFlowDatabase {
         };
     }
 
+    createLocalStorageFallback() {
+        // Simple localStorage wrapper for when IndexedDB isn't available
+        return {
+            transactions: {
+                put: async (data) => {
+                    const transactions = JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                    const index = transactions.findIndex(t => t.id === data.id);
+                    if (index > -1) {
+                        transactions[index] = data;
+                    } else {
+                        transactions.push(data);
+                    }
+                    localStorage.setItem('farmflow_transactions', JSON.stringify(transactions));
+                    return data.id;
+                },
+                get: async (id) => {
+                    const transactions = JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                    return transactions.find(t => t.id === id);
+                },
+                toArray: async () => {
+                    return JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                },
+                delete: async (id) => {
+                    const transactions = JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                    const filtered = transactions.filter(t => t.id !== id);
+                    localStorage.setItem('farmflow_transactions', JSON.stringify(filtered));
+                },
+                clear: async () => {
+                    localStorage.removeItem('farmflow_transactions');
+                },
+                count: async () => {
+                    const transactions = JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                    return transactions.length;
+                },
+                where: (field) => {
+                    return {
+                        equals: (value) => {
+                            return {
+                                toArray: async () => {
+                                    const transactions = JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                                    return transactions.filter(t => t[field] === value);
+                                },
+                                count: async () => {
+                                    const transactions = JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                                    return transactions.filter(t => t[field] === value).length;
+                                }
+                            };
+                        }
+                    };
+                },
+                orderBy: (field) => {
+                    return {
+                        reverse: () => {
+                            return {
+                                toArray: async () => {
+                                    const transactions = JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                                    return transactions.sort((a, b) => 
+                                        new Date(b[field]) - new Date(a[field])
+                                    );
+                                },
+                                limit: (count) => {
+                                    return {
+                                        toArray: async () => {
+                                            const transactions = JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                                            return transactions
+                                                .sort((a, b) => new Date(b[field]) - new Date(a[field]))
+                                                .slice(0, count);
+                                        }
+                                    };
+                                }
+                            };
+                        },
+                        toArray: async () => {
+                            const transactions = JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                            return transactions.sort((a, b) => 
+                                new Date(a[field]) - new Date(b[field])
+                            );
+                        }
+                    };
+                },
+                filter: (callback) => {
+                    return {
+                        toArray: async () => {
+                            const transactions = JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                            return transactions.filter(callback);
+                        },
+                        reverse: () => {
+                            return {
+                                toArray: async () => {
+                                    const transactions = JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                                    return transactions.filter(callback).reverse();
+                                }
+                            };
+                        }
+                    };
+                },
+                bulkAdd: async (items) => {
+                    const transactions = JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                    transactions.push(...items);
+                    localStorage.setItem('farmflow_transactions', JSON.stringify(transactions));
+                },
+                bulkDelete: async (ids) => {
+                    const transactions = JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                    const filtered = transactions.filter(t => !ids.includes(t.id));
+                    localStorage.setItem('farmflow_transactions', JSON.stringify(filtered));
+                },
+                update: async (id, updates) => {
+                    const transactions = JSON.parse(localStorage.getItem('farmflow_transactions') || '[]');
+                    const index = transactions.findIndex(t => t.id === id);
+                    if (index > -1) {
+                        transactions[index] = { ...transactions[index], ...updates };
+                        localStorage.setItem('farmflow_transactions', JSON.stringify(transactions));
+                    }
+                }
+            },
+            // Similar implementations for other tables...
+            enterprises: this.createLocalStorageTable('farmflow_enterprises'),
+            inventory: this.createLocalStorageTable('farmflow_inventory'),
+            animals: this.createLocalStorageTable('farmflow_animals'),
+            crops: this.createLocalStorageTable('farmflow_crops'),
+            settings: this.createLocalStorageTable('farmflow_settings'),
+            syncQueue: this.createLocalStorageTable('farmflow_syncQueue'),
+            
+            // Version and store methods
+            version: () => ({
+                stores: () => ({})
+            })
+        };
+    }
+
+    createLocalStorageTable(key) {
+        return {
+            put: async (data) => {
+                const items = JSON.parse(localStorage.getItem(key) || '[]');
+                const index = items.findIndex(t => t.id === data.id);
+                if (index > -1) {
+                    items[index] = data;
+                } else {
+                    items.push(data);
+                }
+                localStorage.setItem(key, JSON.stringify(items));
+                return data.id;
+            },
+            get: async (id) => {
+                const items = JSON.parse(localStorage.getItem(key) || '[]');
+                return items.find(t => t.id === id);
+            },
+            toArray: async () => {
+                return JSON.parse(localStorage.getItem(key) || '[]');
+            },
+            delete: async (id) => {
+                const items = JSON.parse(localStorage.getItem(key) || '[]');
+                const filtered = items.filter(t => t.id !== id);
+                localStorage.setItem(key, JSON.stringify(filtered));
+            },
+            clear: async () => {
+                localStorage.removeItem(key);
+            },
+            bulkAdd: async (items) => {
+                const existing = JSON.parse(localStorage.getItem(key) || '[]');
+                existing.push(...items);
+                localStorage.setItem(key, JSON.stringify(existing));
+            },
+            bulkDelete: async (ids) => {
+                const items = JSON.parse(localStorage.getItem(key) || '[]');
+                const filtered = items.filter(t => !ids.includes(t.id));
+                localStorage.setItem(key, JSON.stringify(filtered));
+            },
+            update: async (id, updates) => {
+                const items = JSON.parse(localStorage.getItem(key) || '[]');
+                const index = items.findIndex(t => t.id === id);
+                if (index > -1) {
+                    items[index] = { ...items[index], ...updates };
+                    localStorage.setItem(key, JSON.stringify(items));
+                }
+            },
+            where: (field) => {
+                return {
+                    equals: (value) => {
+                        return {
+                            toArray: async () => {
+                                const items = JSON.parse(localStorage.getItem(key) || '[]');
+                                return items.filter(t => t[field] === value);
+                            },
+                            count: async () => {
+                                const items = JSON.parse(localStorage.getItem(key) || '[]');
+                                return items.filter(t => t[field] === value).length;
+                            }
+                        };
+                    }
+                };
+            }
+        };
+    }
+
     async initialize() {
         try {
-            // Open database
+            if (this.useLocalStorage) {
+                console.log('📦 Using localStorage fallback database');
+                await this.initializeSampleData();
+                return true;
+            }
+            
+            // Open database with Dexie
             this.db = new Dexie(this.dbName);
+            
+            // Define schema
             this.db.version(this.dbVersion).stores(this.schema);
             
             // Add sample data if empty
@@ -30,9 +242,19 @@ class FarmFlowDatabase {
             return true;
         } catch (error) {
             console.error('❌ Database initialization failed:', error);
-            throw error;
+            
+            // Fallback to localStorage
+            console.log('🔄 Falling back to localStorage...');
+            this.useLocalStorage = true;
+            this.db = this.createLocalStorageFallback();
+            await this.initializeSampleData();
+            
+            return true;
         }
     }
+
+    // Rest of your database methods remain the same...
+    // They should work with both Dexie and localStorage fallback
 
     async initializeSampleData() {
         const transactionCount = await this.db.transactions.count();
