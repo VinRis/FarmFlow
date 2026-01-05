@@ -2188,3 +2188,37 @@ input[type="number"] {
         width: 100%;
     }
 }
+
+/* ----- FIX 1: Reduce Glass Effect for Readability ----- */
+.sidebar, header, nav, .nav-bar, .glass-panel {
+    background-color: rgba(255, 255, 255, 0.92) !important; /* Less transparent */
+    backdrop-filter: blur(8px) saturate(1.2) !important; /* Softer blur */
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Ensure text is legible over the background */
+.sidebar h2, .sidebar a, header h1, nav a {
+    color: #2d3748 !important; /* A dark, high-contrast gray */
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9) !important;
+}
+
+/* ----- FIX 2: Make Buttons Clickable ----- */
+.btn, button, [role="button"] {
+    position: relative !important; /* Ensures z-index works */
+    z-index: 100 !important;
+    pointer-events: auto !important;
+}
+
+/* If any overlays are blocking clicks, make them pass-through */
+.overlay {
+    pointer-events: none !important;
+}
+.overlay * {
+    pointer-events: auto !important;
+}
+
+/* ----- FIX 3: Fix Icon Visibility (if applicable) ----- */
+.material-icons, .icon {
+    color: inherit !important;
+    filter: none !important;
+}
