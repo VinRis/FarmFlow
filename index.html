@@ -2,631 +2,375 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FarmFlow - Smart Farm Management</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>FarmFlow - Farm Financial Manager</title>
     
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- Theme Color -->
+    <!-- PWA Configuration -->
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#2E7D32">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Offline-first farm financial management for African farmers">
     
     <!-- Icons -->
-    <link rel="icon" type="image/png" href="icons/icon-72x72.png">
-    <link rel="apple-touch-icon" href="icons/icon-152x152.png">
+    <link rel="icon" href="/icons/icon-72.png" type="image/png">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
     
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- Material Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    
-    <!-- Chart.js -->
+    <!-- Libraries -->
+    <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
 </head>
-<body>
-    <!-- Splash Screen -->
-    <div id="splash-screen" class="splash-screen">
-        <div class="splash-content">
-            <div class="splash-logo">
-                <div class="logo-animation">
-                    <div class="leaf leaf-1"></div>
-                    <div class="leaf leaf-2"></div>
-                    <div class="leaf leaf-3"></div>
-                </div>
-                <h1 class="splash-title">FarmFlow</h1>
-                <p class="splash-subtitle">Growing Prosperity</p>
-            </div>
-            <div class="splash-progress">
-                <div class="progress-bar">
-                    <div class="progress-fill"></div>
-                </div>
-                <p class="loading-text">Preparing your farm dashboard...</p>
-            </div>
-            <div class="farm-tips">
-                <p class="tip">💡 <span id="farm-tip">Loading farming tips...</span></p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main App Container -->
+<body class="light-theme">
+    <!-- App Container -->
     <div class="app-container">
-        <!-- App Header -->
-        <header class="app-header glass-header">
-            <div class="header-left">
-                <button class="menu-btn" id="menu-btn" aria-label="Menu">
-                    <span class="material-icons-round">menu</span>
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-content">
+                <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+                    <span class="material-icons">menu</span>
                 </button>
                 <div class="logo">
-                    <span class="material-icons-round logo-icon">agriculture</span>
-                    <h1 class="app-title">FarmFlow</h1>
+                    <span class="material-icons">agriculture</span>
+                    <h1>FarmFlow</h1>
                 </div>
-            </div>
-            
-            <div class="header-center">
-                <div class="date-display">
-                    <span class="material-icons-round">calendar_today</span>
-                    <span id="current-date"></span>
+                <div class="header-actions">
+                    <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
+                        <span class="material-icons">light_mode</span>
+                    </button>
+                    <button class="icon-btn" id="syncStatus" aria-label="Sync status">
+                        <span class="material-icons">cloud_off</span>
+                    </button>
                 </div>
-            </div>
-            
-            <div class="header-right">
-                <div class="sync-status" id="sync-status">
-                    <span class="material-icons-round sync-icon">cloud_done</span>
-                    <span class="sync-text">Synced</span>
-                </div>
-                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-                    <span class="material-icons-round">light_mode</span>
-                </button>
             </div>
         </header>
 
-        <!-- Side Navigation -->
-        <nav class="side-nav glass-nav" id="side-nav">
-            <div class="nav-header">
-                <div class="user-profile">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="main-nav">
+                <div class="user-info">
                     <div class="avatar">
-                        <span class="material-icons-round">person</span>
+                        <span class="material-icons">person</span>
                     </div>
-                    <div class="user-info">
-                        <h3 id="user-name">Farmer</h3>
-                        <p id="farm-name">My Farm</p>
+                    <div class="user-details">
+                        <h3 id="userName">Farmer</h3>
+                        <p id="farmName">Family Farm</p>
                     </div>
                 </div>
-                <button class="close-nav" id="close-nav">
-                    <span class="material-icons-round">close</span>
-                </button>
-            </div>
 
-            <div class="nav-menu">
-                <a href="#dashboard" class="nav-item active" data-page="dashboard">
-                    <span class="material-icons-round">dashboard</span>
-                    <span>Dashboard</span>
-                    <span class="nav-badge" id="dashboard-badge"></span>
-                </a>
-                
-                <a href="#enterprises" class="nav-item" data-page="enterprises">
-                    <span class="material-icons-round">business</span>
-                    <span>Enterprises</span>
-                </a>
-                
-                <div class="nav-section">
-                    <h4 class="section-title">Farm Records</h4>
-                    <a href="#transactions" class="nav-item" data-page="transactions">
-                        <span class="material-icons-round">payments</span>
+                <ul class="nav-list">
+                    <li><a href="#dashboard" class="nav-item active" data-page="dashboard">
+                        <span class="material-icons">dashboard</span>
+                        <span>Dashboard</span>
+                    </a></li>
+                    <li><a href="#transactions" class="nav-item" data-page="transactions">
+                        <span class="material-icons">payments</span>
                         <span>Transactions</span>
-                        <span class="nav-badge" id="transaction-badge">0</span>
-                    </a>
-                    
-                    <a href="#records" class="nav-item" data-page="records">
-                        <span class="material-icons-round">description</span>
-                        <span>Farm Records</span>
-                    </a>
-                    
-                    <a href="#inventory" class="nav-item" data-page="inventory">
-                        <span class="material-icons-round">inventory</span>
-                        <span>Inventory</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section">
-                    <h4 class="section-title">Calculators</h4>
-                    <a href="#calculators" class="nav-item" data-page="calculators">
-                        <span class="material-icons-round">calculate</span>
-                        <span>Calculators</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section">
-                    <h4 class="section-title">Reports</h4>
-                    <a href="#reports" class="nav-item" data-page="reports">
-                        <span class="material-icons-round">insights</span>
+                    </a></li>
+                    <li><a href="#enterprises" class="nav-item" data-page="enterprises">
+                        <span class="material-icons">business</span>
+                        <span>Enterprises</span>
+                    </a></li>
+                    <li><a href="#reports" class="nav-item" data-page="reports">
+                        <span class="material-icons">assessment</span>
                         <span>Reports</span>
-                    </a>
-                    
-                    <a href="#analytics" class="nav-item" data-page="analytics">
-                        <span class="material-icons-round">trending_up</span>
-                        <span>Analytics</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section">
-                    <h4 class="section-title">Settings</h4>
-                    <a href="#settings" class="nav-item" data-page="settings">
-                        <span class="material-icons-round">settings</span>
+                    </a></li>
+                    <li><a href="#calculators" class="nav-item" data-page="calculators">
+                        <span class="material-icons">calculate</span>
+                        <span>Calculators</span>
+                    </a></li>
+                    <li><a href="#settings" class="nav-item" data-page="settings">
+                        <span class="material-icons">settings</span>
                         <span>Settings</span>
-                    </a>
-                    
-                    <a href="#backup" class="nav-item" data-page="backup">
-                        <span class="material-icons-round">backup</span>
-                        <span>Backup & Restore</span>
-                    </a>
-                </div>
-            </div>
+                    </a></li>
+                </ul>
 
-            <div class="nav-footer">
-                <div class="farm-stats">
-                    <div class="stat">
-                        <span class="material-icons-round">attach_money</span>
-                        <span id="nav-balance">$0.00</span>
+                <div class="sidebar-footer">
+                    <div class="storage-info">
+                        <div class="storage-bar">
+                            <div class="storage-fill" style="width: 30%"></div>
+                        </div>
+                        <p>30% storage used</p>
                     </div>
-                    <div class="stat">
-                        <span class="material-icons-round">trending_up</span>
-                        <span id="nav-profit">0%</span>
-                    </div>
+                    <button class="btn-secondary" id="backupBtn">
+                        <span class="material-icons">backup</span>
+                        Backup Data
+                    </button>
                 </div>
-                <button class="logout-btn" id="logout-btn">
-                    <span class="material-icons-round">logout</span>
-                    <span>Logout</span>
-                </button>
-            </div>
-        </nav>
+            </nav>
+        </aside>
 
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content" id="mainContent">
             <!-- Dashboard Page -->
-            <section id="dashboard-page" class="page active">
+            <div class="page active" id="dashboardPage">
                 <div class="page-header">
-                    <h2 class="page-title">Farm Dashboard</h2>
-                    <div class="page-actions">
-                        <button class="btn btn-primary" id="add-transaction-btn">
-                            <span class="material-icons-round">add</span>
-                            Add Transaction
-                        </button>
-                        <button class="btn btn-outline" id="refresh-dashboard">
-                            <span class="material-icons-round">refresh</span>
-                        </button>
+                    <h2>Dashboard</h2>
+                    <div class="date-filter">
+                        <select id="periodSelect">
+                            <option value="week">This Week</option>
+                            <option value="month" selected>This Month</option>
+                            <option value="quarter">This Quarter</option>
+                            <option value="year">This Year</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- KPI Cards -->
-                <div class="kpi-grid">
-                    <div class="kpi-card glass-card">
-                        <div class="kpi-icon income">
-                            <span class="material-icons-round">savings</span>
+                <div class="stats-grid">
+                    <div class="stat-card income">
+                        <div class="stat-icon">
+                            <span class="material-icons">trending_up</span>
                         </div>
-                        <div class="kpi-content">
-                            <h3 class="kpi-label">Total Income</h3>
-                            <p class="kpi-value" id="total-income">$0.00</p>
-                            <div class="kpi-trend up">
-                                <span class="material-icons-round">trending_up</span>
-                                <span>+12% this month</span>
-                            </div>
+                        <div class="stat-info">
+                            <h3>Total Income</h3>
+                            <p class="stat-value" id="totalIncome">KES 0</p>
+                            <p class="stat-change">+0% from last period</p>
                         </div>
                     </div>
 
-                    <div class="kpi-card glass-card">
-                        <div class="kpi-icon expense">
-                            <span class="material-icons-round">money_off</span>
+                    <div class="stat-card expenses">
+                        <div class="stat-icon">
+                            <span class="material-icons">trending_down</span>
                         </div>
-                        <div class="kpi-content">
-                            <h3 class="kpi-label">Total Expenses</h3>
-                            <p class="kpi-value" id="total-expenses">$0.00</p>
-                            <div class="kpi-trend down">
-                                <span class="material-icons-round">trending_down</span>
-                                <span>-8% this month</span>
-                            </div>
+                        <div class="stat-info">
+                            <h3>Total Expenses</h3>
+                            <p class="stat-value" id="totalExpenses">KES 0</p>
+                            <p class="stat-change">+0% from last period</p>
                         </div>
                     </div>
 
-                    <div class="kpi-card glass-card">
-                        <div class="kpi-icon profit">
-                            <span class="material-icons-round">show_chart</span>
+                    <div class="stat-card balance">
+                        <div class="stat-icon">
+                            <span class="material-icons">account_balance</span>
                         </div>
-                        <div class="kpi-content">
-                            <h3 class="kpi-label">Net Profit</h3>
-                            <p class="kpi-value" id="net-profit">$0.00</p>
-                            <div class="kpi-trend up">
-                                <span class="material-icons-round">trending_up</span>
-                                <span>+15% this month</span>
-                            </div>
+                        <div class="stat-info">
+                            <h3>Net Balance</h3>
+                            <p class="stat-value" id="netBalance">KES 0</p>
+                            <p class="stat-change">Current period</p>
                         </div>
                     </div>
 
-                    <div class="kpi-card glass-card">
-                        <div class="kpi-icon balance">
-                            <span class="material-icons-round">account_balance</span>
+                    <div class="stat-card enterprises">
+                        <div class="stat-icon">
+                            <span class="material-icons">store</span>
                         </div>
-                        <div class="kpi-content">
-                            <h3 class="kpi-label">Balance</h3>
-                            <p class="kpi-value" id="current-balance">$0.00</p>
-                            <div class="kpi-trend neutral">
-                                <span class="material-icons-round">remove</span>
-                                <span>No change</span>
-                            </div>
+                        <div class="stat-info">
+                            <h3>Active Enterprises</h3>
+                            <p class="stat-value" id="activeEnterprises">0</p>
+                            <p class="stat-change">Enterprises</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Charts Section -->
-                <div class="charts-section">
-                    <div class="chart-card glass-card">
-                        <div class="chart-header">
-                            <h3>Income vs Expenses</h3>
-                            <select class="chart-period" id="income-expense-period">
-                                <option value="week">This Week</option>
-                                <option value="month" selected>This Month</option>
-                                <option value="quarter">This Quarter</option>
-                                <option value="year">This Year</option>
-                            </select>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="income-expense-chart"></canvas>
-                        </div>
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Income vs Expenses</h3>
+                        <canvas id="incomeExpenseChart"></canvas>
                     </div>
-
-                    <div class="chart-card glass-card">
-                        <div class="chart-header">
-                            <h3>Enterprise Performance</h3>
-                            <button class="btn-icon" id="refresh-enterprise-chart">
-                                <span class="material-icons-round">refresh</span>
-                            </button>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="enterprise-chart"></canvas>
-                        </div>
+                    <div class="chart-container">
+                        <h3>Enterprise Performance</h3>
+                        <canvas id="enterpriseChart"></canvas>
                     </div>
                 </div>
 
                 <!-- Recent Transactions -->
-                <div class="recent-transactions glass-card">
+                <div class="recent-transactions">
                     <div class="section-header">
                         <h3>Recent Transactions</h3>
-                        <a href="#transactions" class="btn-link" data-page="transactions">
+                        <button class="btn-text" id="viewAllTransactions">
                             View All
-                            <span class="material-icons-round">arrow_forward</span>
-                        </a>
+                            <span class="material-icons">arrow_forward</span>
+                        </button>
                     </div>
-                    <div class="transactions-list" id="recent-transactions">
-                        <!-- Transactions will be loaded here -->
+                    <div class="transactions-list" id="recentTransactions">
+                        <!-- Transactions loaded dynamically -->
                         <div class="empty-state">
-                            <span class="material-icons-round">receipt_long</span>
+                            <span class="material-icons">receipt</span>
                             <p>No transactions yet</p>
-                            <button class="btn btn-primary" id="add-first-transaction">
-                                Add Your First Transaction
-                            </button>
+                            <button class="btn-primary" id="addFirstTransaction">Add First Transaction</button>
                         </div>
                     </div>
                 </div>
-
-                <!-- Quick Actions -->
-                <div class="quick-actions">
-                    <h3>Quick Actions</h3>
-                    <div class="actions-grid">
-                        <button class="action-btn" data-action="poultry">
-                            <div class="action-icon poultry">
-                                <span class="material-icons-round">pets</span>
-                            </div>
-                            <span>Poultry</span>
-                        </button>
-                        
-                        <button class="action-btn" data-action="dairy">
-                            <div class="action-icon dairy">
-                                <span class="material-icons-round">water_drop</span>
-                            </div>
-                            <span>Dairy</span>
-                        </button>
-                        
-                        <button class="action-btn" data-action="crops">
-                            <div class="action-icon crops">
-                                <span class="material-icons-round">spa</span>
-                            </div>
-                            <span>Crops</span>
-                        </button>
-                        
-                        <button class="action-btn" data-action="livestock">
-                            <div class="action-icon livestock">
-                                <span class="material-icons-round">agriculture</span>
-                            </div>
-                            <span>Livestock</span>
-                        </button>
-                        
-                        <button class="action-btn" data-action="add-expense">
-                            <div class="action-icon expense">
-                                <span class="material-icons-round">add_shopping_cart</span>
-                            </div>
-                            <span>Add Expense</span>
-                        </button>
-                        
-                        <button class="action-btn" data-action="add-income">
-                            <div class="action-icon income">
-                                <span class="material-icons-round">attach_money</span>
-                            </div>
-                            <span>Add Income</span>
-                        </button>
-                    </div>
-                </div>
-            </section>
+            </div>
 
             <!-- Transactions Page -->
-            <section id="transactions-page" class="page">
+            <div class="page" id="transactionsPage">
                 <div class="page-header">
-                    <h2 class="page-title">Transactions</h2>
-                    <div class="page-actions">
-                        <div class="filter-controls">
-                            <select class="filter-select" id="transaction-filter">
-                                <option value="all">All Transactions</option>
-                                <option value="income">Income Only</option>
-                                <option value="expense">Expenses Only</option>
-                                <option value="today">Today</option>
-                                <option value="week">This Week</option>
-                                <option value="month">This Month</option>
-                            </select>
-                            <select class="filter-select" id="enterprise-filter">
-                                <option value="all">All Enterprises</option>
-                                <option value="poultry">Poultry</option>
-                                <option value="dairy">Dairy</option>
-                                <option value="crops">Crops</option>
-                                <option value="livestock">Livestock</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-primary" id="new-transaction-btn">
-                            <span class="material-icons-round">add</span>
-                            New Transaction
-                        </button>
+                    <h2>Transactions</h2>
+                    <button class="btn-primary" id="addTransactionBtn">
+                        <span class="material-icons">add</span>
+                        Add Transaction
+                    </button>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-bar">
+                    <div class="filter-group">
+                        <input type="text" placeholder="Search transactions..." id="searchTransactions">
+                    </div>
+                    <div class="filter-group">
+                        <select id="filterEnterprise">
+                            <option value="">All Enterprises</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <select id="filterType">
+                            <option value="">All Types</option>
+                            <option value="income">Income</option>
+                            <option value="expense">Expense</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <input type="date" id="filterDateFrom">
+                        <input type="date" id="filterDateTo">
                     </div>
                 </div>
 
-                <!-- Transaction Form (Initially Hidden) -->
-                <div class="transaction-form-container glass-card" id="transaction-form" style="display: none;">
-                    <form id="transaction-form-element">
-                        <div class="form-header">
-                            <h3>New Transaction</h3>
-                            <button type="button" class="btn-icon close-form" id="close-transaction-form">
-                                <span class="material-icons-round">close</span>
-                            </button>
-                        </div>
-                        
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="transaction-type">
-                                    <span class="material-icons-round">category</span>
-                                    Type
-                                </label>
-                                <div class="type-selector">
-                                    <button type="button" class="type-option active" data-type="income">
-                                        <span class="material-icons-round">south_west</span>
-                                        Income
-                                    </button>
-                                    <button type="button" class="type-option" data-type="expense">
-                                        <span class="material-icons-round">north_east</span>
-                                        Expense
-                                    </button>
-                                </div>
-                                <input type="hidden" id="transaction-type" name="type" value="income">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="amount">
-                                    <span class="material-icons-round">attach_money</span>
-                                    Amount
-                                </label>
-                                <div class="input-with-icon">
-                                    <span class="input-prefix">$</span>
-                                    <input type="number" id="amount" name="amount" step="0.01" min="0" placeholder="0.00" required>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="enterprise">
-                                    <span class="material-icons-round">business</span>
-                                    Enterprise
-                                </label>
-                                <select id="enterprise" name="enterprise" required>
-                                    <option value="">Select Enterprise</option>
-                                    <option value="poultry">Poultry</option>
-                                    <option value="dairy">Dairy</option>
-                                    <option value="crops">Crops</option>
-                                    <option value="livestock">Livestock</option>
-                                    <option value="general">General Farm</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="category">
-                                    <span class="material-icons-round">label</span>
-                                    Category
-                                </label>
-                                <select id="category" name="category" required>
-                                    <option value="">Select Category</option>
-                                    <!-- Categories will be populated based on type -->
-                                </select>
-                            </div>
-
-                            <div class="form-group full-width">
-                                <label for="description">
-                                    <span class="material-icons-round">description</span>
-                                    Description
-                                </label>
-                                <input type="text" id="description" name="description" placeholder="Enter transaction description" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="date">
-                                    <span class="material-icons-round">calendar_today</span>
-                                    Date
-                                </label>
-                                <input type="date" id="date" name="date" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="payment-method">
-                                    <span class="material-icons-round">payment</span>
-                                    Payment Method
-                                </label>
-                                <select id="payment-method" name="payment_method">
-                                    <option value="cash">Cash</option>
-                                    <option value="mobile_money">Mobile Money</option>
-                                    <option value="bank_transfer">Bank Transfer</option>
-                                    <option value="credit">Credit</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group full-width">
-                                <label for="notes">
-                                    <span class="material-icons-round">notes</span>
-                                    Notes (Optional)
-                                </label>
-                                <textarea id="notes" name="notes" rows="3" placeholder="Additional notes about this transaction"></textarea>
-                            </div>
-
-                            <div class="form-group full-width">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="recurring" name="recurring">
-                                    <span class="checkbox-custom"></span>
-                                    <span>This is a recurring transaction</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-outline close-form">Cancel</button>
-                            <button type="submit" class="btn btn-primary">
-                                <span class="material-icons-round">save</span>
-                                Save Transaction
-                            </button>
-                        </div>
-                    </form>
+                <!-- Transactions Table -->
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Enterprise</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTable">
+                            <!-- Loaded dynamically -->
+                        </tbody>
+                    </table>
                 </div>
-
-                <!-- Transactions List -->
-                <div class="transactions-container" id="transactions-container">
-                    <!-- Transactions will be loaded here -->
-                </div>
-            </section>
+            </div>
 
             <!-- Enterprises Page -->
-            <section id="enterprises-page" class="page">
+            <div class="page" id="enterprisesPage">
                 <div class="page-header">
-                    <h2 class="page-title">Enterprises</h2>
-                    <div class="page-actions">
-                        <button class="btn btn-primary" id="add-enterprise-btn">
-                            <span class="material-icons-round">add_business</span>
-                            Add Enterprise
-                        </button>
-                    </div>
+                    <h2>Enterprises</h2>
+                    <button class="btn-primary" id="addEnterpriseBtn">
+                        <span class="material-icons">add_business</span>
+                        Add Enterprise
+                    </button>
                 </div>
 
-                <div class="enterprises-grid">
-                    <!-- Enterprise cards will be loaded here -->
+                <div class="enterprises-grid" id="enterprisesGrid">
+                    <!-- Loaded dynamically -->
                 </div>
-            </section>
-
-            <!-- Calculators Page -->
-            <section id="calculators-page" class="page">
-                <div class="page-header">
-                    <h2 class="page-title">Farm Calculators</h2>
-                    <p class="page-subtitle">Smart tools for farm planning and management</p>
-                </div>
-
-                <div class="calculators-container">
-                    <!-- Calculator cards will be loaded here -->
-                </div>
-            </section>
+            </div>
 
             <!-- Reports Page -->
-            <section id="reports-page" class="page">
+            <div class="page" id="reportsPage">
                 <div class="page-header">
-                    <h2 class="page-title">Reports & Analytics</h2>
-                    <div class="page-actions">
-                        <button class="btn btn-primary" id="generate-report">
-                            <span class="material-icons-round">picture_as_pdf</span>
-                            Generate PDF Report
+                    <h2>Reports</h2>
+                    <div class="report-actions">
+                        <button class="btn-secondary" id="generateReportBtn">
+                            <span class="material-icons">picture_as_pdf</span>
+                            Generate PDF
+                        </button>
+                        <button class="btn-secondary" id="exportReportBtn">
+                            <span class="material-icons">download</span>
+                            Export CSV
                         </button>
                     </div>
                 </div>
 
                 <div class="reports-container">
-                    <!-- Reports will be loaded here -->
+                    <div class="report-filters">
+                        <select id="reportPeriod">
+                            <option value="custom">Custom Range</option>
+                            <option value="month">Monthly</option>
+                            <option value="quarter">Quarterly</option>
+                            <option value="year">Yearly</option>
+                        </select>
+                        <div class="date-range" id="dateRangePicker">
+                            <input type="date" id="reportDateFrom">
+                            <span>to</span>
+                            <input type="date" id="reportDateTo">
+                        </div>
+                        <button class="btn-primary" id="applyReportFilters">Apply</button>
+                    </div>
+
+                    <div class="report-output" id="reportOutput">
+                        <!-- Report content generated here -->
+                    </div>
                 </div>
-            </section>
-
-            <!-- Settings Page -->
-            <section id="settings-page" class="page">
-                <div class="page-header">
-                    <h2 class="page-title">Settings</h2>
-                </div>
-
-                <div class="settings-container">
-                    <!-- Settings sections will be loaded here -->
-                </div>
-            </section>
-        </main>
-
-        <!-- Bottom Navigation (Mobile) -->
-        <nav class="bottom-nav glass-nav">
-            <a href="#dashboard" class="nav-btn active" data-page="dashboard">
-                <span class="material-icons-round">dashboard</span>
-                <span>Home</span>
-            </a>
-            
-            <a href="#transactions" class="nav-btn" data-page="transactions">
-                <span class="material-icons-round">payments</span>
-                <span>Money</span>
-            </a>
-            
-            <a href="#enterprises" class="nav-btn" data-page="enterprises">
-                <span class="material-icons-round">business</span>
-                <span>Farm</span>
-            </a>
-            
-            <a href="#calculators" class="nav-btn" data-page="calculators">
-                <span class="material-icons-round">calculate</span>
-                <span>Tools</span>
-            </a>
-            
-            <a href="#reports" class="nav-btn" data-page="reports">
-                <span class="material-icons-round">insights</span>
-                <span>Insights</span>
-            </a>
-        </nav>
-
-        <!-- Toast Notifications -->
-        <div class="toast-container" id="toast-container"></div>
-
-        <!-- Loading Overlay -->
-        <div class="loading-overlay" id="loading-overlay">
-            <div class="loading-content">
-                <div class="loading-spinner"></div>
-                <p class="loading-text">Processing...</p>
             </div>
+        </main>
+    </div>
+
+    <!-- Transaction Modal -->
+    <div class="modal" id="transactionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Transaction</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="transactionForm">
+                <div class="form-group">
+                    <label for="transDate">Date</label>
+                    <input type="date" id="transDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="transDescription">Description</label>
+                    <input type="text" id="transDescription" placeholder="What was this transaction for?" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="transType">Type</label>
+                        <select id="transType" required>
+                            <option value="income">Income</option>
+                            <option value="expense">Expense</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transAmount">Amount (KES)</label>
+                        <input type="number" id="transAmount" min="0" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="transEnterprise">Enterprise</label>
+                    <select id="transEnterprise" required>
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transCategory">Category</label>
+                    <select id="transCategory" required>
+                        <!-- Loaded dynamically based on type -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transNotes">Notes (Optional)</label>
+                    <textarea id="transNotes" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary close-modal">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Transaction</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- JavaScript Files -->
-    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <script src="database.js"></script>
-    <script src="ui.js"></script>
-    <script src="calculators.js"></script>
-    <script src="reports.js"></script>
-    <script src="sync.js"></script>
-    <script src="app.js"></script>
+    <!-- Scripts -->
+    <script src="js/database.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/sync.js"></script>
+    <script>
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed:', err));
+        }
+    </script>
 </body>
 </html>
