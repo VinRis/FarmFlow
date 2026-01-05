@@ -1,0 +1,23 @@
+{
+  "name": "farmflow",
+  "version": "1.0.0",
+  "description": "Offline-first farm financial management PWA",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "pwa",
+    "farm",
+    "finance",
+    "offline-first",
+    "africa"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.0.0"
+  }
+}
